@@ -1,0 +1,236 @@
+{
+  "routes": [
+    {
+      "id": "api/revalidate/route.ts",
+      "path": "/api/revalidate",
+      "type": "static",
+      "segmentConfig": {},
+      "fetches": [],
+      "layouts": []
+    },
+    {
+      "id": "blog/page.tsx",
+      "path": "/blog",
+      "type": "ISR",
+      "segmentConfig": {
+        "revalidate": 600
+      },
+      "fetches": [
+        {
+          "id": "C:/Users/Pc/Desktop/personal-projects/next-cache-inspector/fixtures/test-app/app/blog/page.tsx:4:9",
+          "sourceFile": "C:/Users/Pc/Desktop/personal-projects/next-cache-inspector/fixtures/test-app/app/blog/page.tsx",
+          "line": 4,
+          "url": "https://example.com/api/posts",
+          "revalidate": 600,
+          "tags": [
+            "posts"
+          ]
+        },
+        {
+          "id": "C:/Users/Pc/Desktop/personal-projects/next-cache-inspector/fixtures/test-app/app/blog/page.tsx:11:9",
+          "sourceFile": "C:/Users/Pc/Desktop/personal-projects/next-cache-inspector/fixtures/test-app/app/blog/page.tsx",
+          "line": 11,
+          "url": "https://example.com/api/untagged",
+          "revalidate": 600,
+          "tags": []
+        }
+      ],
+      "layouts": [
+        "layout.tsx",
+        "blog/layout.tsx"
+      ]
+    },
+    {
+      "id": "dynamic/[id]/page.tsx",
+      "path": "/dynamic/[id]",
+      "type": "dynamic",
+      "segmentConfig": {
+        "dynamic": "force-dynamic",
+        "revalidate": 120
+      },
+      "fetches": [
+        {
+          "id": "C:/Users/Pc/Desktop/personal-projects/next-cache-inspector/fixtures/test-app/app/dynamic/[id]/page.tsx:5:9",
+          "sourceFile": "C:/Users/Pc/Desktop/personal-projects/next-cache-inspector/fixtures/test-app/app/dynamic/[id]/page.tsx",
+          "line": 5,
+          "url": "https://example.com/api/dynamic",
+          "cache": "no-store",
+          "revalidate": 120,
+          "tags": [
+            "dynamic"
+          ]
+        }
+      ],
+      "layouts": [
+        "layout.tsx"
+      ]
+    },
+    {
+      "id": "page.tsx",
+      "path": "/",
+      "type": "ISR",
+      "segmentConfig": {
+        "revalidate": 300
+      },
+      "fetches": [
+        {
+          "id": "C:/Users/Pc/Desktop/personal-projects/next-cache-inspector/fixtures/test-app/app/page.tsx:4:9",
+          "sourceFile": "C:/Users/Pc/Desktop/personal-projects/next-cache-inspector/fixtures/test-app/app/page.tsx",
+          "line": 4,
+          "url": "https://example.com/api/home",
+          "revalidate": 300,
+          "tags": [
+            "home"
+          ]
+        }
+      ],
+      "layouts": [
+        "layout.tsx"
+      ]
+    },
+    {
+      "id": "products/[slug]/page.tsx",
+      "path": "/products/[slug]",
+      "type": "PPR",
+      "segmentConfig": {},
+      "fetches": [
+        {
+          "id": "C:/Users/Pc/Desktop/personal-projects/next-cache-inspector/fixtures/test-app/app/products/[slug]/page.tsx:8:9",
+          "sourceFile": "C:/Users/Pc/Desktop/personal-projects/next-cache-inspector/fixtures/test-app/app/products/[slug]/page.tsx",
+          "line": 8,
+          "url": "https://example.com/api/product",
+          "revalidate": false,
+          "tags": [
+            "product"
+          ]
+        }
+      ],
+      "layouts": [
+        "layout.tsx"
+      ]
+    }
+  ],
+  "tags": [
+    {
+      "name": "dynamic",
+      "usedBy": [
+        "dynamic/[id]/page.tsx"
+      ],
+      "invalidatedBy": []
+    },
+    {
+      "name": "home",
+      "usedBy": [
+        "page.tsx"
+      ],
+      "invalidatedBy": [
+        "C:/Users/Pc/Desktop/personal-projects/next-cache-inspector/fixtures/test-app/app/api/revalidate/route.ts:8:3"
+      ]
+    },
+    {
+      "name": "posts",
+      "usedBy": [
+        "blog/page.tsx",
+        "dynamic/[id]/page.tsx",
+        "page.tsx",
+        "products/[slug]/page.tsx"
+      ],
+      "invalidatedBy": [
+        "C:/Users/Pc/Desktop/personal-projects/next-cache-inspector/fixtures/test-app/app/api/revalidate/route.ts:6:3"
+      ]
+    },
+    {
+      "name": "product",
+      "usedBy": [
+        "products/[slug]/page.tsx"
+      ],
+      "invalidatedBy": [
+        "C:/Users/Pc/Desktop/personal-projects/next-cache-inspector/fixtures/test-app/app/actions.ts:6:3"
+      ]
+    }
+  ],
+  "revalidators": [
+    {
+      "id": "C:/Users/Pc/Desktop/personal-projects/next-cache-inspector/fixtures/test-app/app/actions.ts:6:3",
+      "type": "tag",
+      "target": "product",
+      "sourceFile": "C:/Users/Pc/Desktop/personal-projects/next-cache-inspector/fixtures/test-app/app/actions.ts",
+      "line": 6
+    },
+    {
+      "id": "C:/Users/Pc/Desktop/personal-projects/next-cache-inspector/fixtures/test-app/app/api/revalidate/route.ts:6:3",
+      "type": "tag",
+      "target": "posts",
+      "sourceFile": "C:/Users/Pc/Desktop/personal-projects/next-cache-inspector/fixtures/test-app/app/api/revalidate/route.ts",
+      "line": 6
+    },
+    {
+      "id": "C:/Users/Pc/Desktop/personal-projects/next-cache-inspector/fixtures/test-app/app/api/revalidate/route.ts:7:3",
+      "type": "tag",
+      "target": "orphan",
+      "sourceFile": "C:/Users/Pc/Desktop/personal-projects/next-cache-inspector/fixtures/test-app/app/api/revalidate/route.ts",
+      "line": 7
+    },
+    {
+      "id": "C:/Users/Pc/Desktop/personal-projects/next-cache-inspector/fixtures/test-app/app/api/revalidate/route.ts:8:3",
+      "type": "tag",
+      "target": "home",
+      "sourceFile": "C:/Users/Pc/Desktop/personal-projects/next-cache-inspector/fixtures/test-app/app/api/revalidate/route.ts",
+      "line": 8
+    },
+    {
+      "id": "C:/Users/Pc/Desktop/personal-projects/next-cache-inspector/fixtures/test-app/app/api/revalidate/route.ts:9:3",
+      "type": "path",
+      "target": "/blog",
+      "sourceFile": "C:/Users/Pc/Desktop/personal-projects/next-cache-inspector/fixtures/test-app/app/api/revalidate/route.ts",
+      "line": 9
+    }
+  ],
+  "antiPatterns": [
+    {
+      "id": "no-store-with-revalidate:C:/Users/Pc/Desktop/personal-projects/next-cache-inspector/fixtures/test-app/app/dynamic/[id]/page.tsx:5",
+      "severity": "error",
+      "message": "fetch() uses cache: 'no-store' with revalidate. These options conflict - no-store disables caching entirely.",
+      "sourceFile": "C:/Users/Pc/Desktop/personal-projects/next-cache-inspector/fixtures/test-app/app/dynamic/[id]/page.tsx",
+      "line": 5,
+      "rule": "no-store-with-revalidate"
+    },
+    {
+      "id": "isr-untagged-fetch:C:/Users/Pc/Desktop/personal-projects/next-cache-inspector/fixtures/test-app/app/blog/page.tsx:11",
+      "severity": "warning",
+      "message": "ISR route has untagged fetch. Without tags, you cannot revalidate this fetch precisely.",
+      "sourceFile": "C:/Users/Pc/Desktop/personal-projects/next-cache-inspector/fixtures/test-app/app/blog/page.tsx",
+      "line": 11,
+      "rule": "isr-untagged-fetch"
+    },
+    {
+      "id": "orphan-revalidate-tag:C:/Users/Pc/Desktop/personal-projects/next-cache-inspector/fixtures/test-app/app/api/revalidate/route.ts:7",
+      "severity": "warning",
+      "message": "revalidateTag('orphan') targets a tag that is never used in any fetch().",
+      "sourceFile": "C:/Users/Pc/Desktop/personal-projects/next-cache-inspector/fixtures/test-app/app/api/revalidate/route.ts",
+      "line": 7,
+      "rule": "orphan-revalidate-tag"
+    },
+    {
+      "id": "force-dynamic-with-revalidate:C:/Users/Pc/Desktop/personal-projects/next-cache-inspector/fixtures/test-app/app/dynamic/[id]/page.tsx:5",
+      "severity": "error",
+      "message": "Route exports both force-dynamic and revalidate. force-dynamic disables static generation; revalidate has no effect.",
+      "sourceFile": "C:/Users/Pc/Desktop/personal-projects/next-cache-inspector/fixtures/test-app/app/dynamic/[id]/page.tsx",
+      "line": 5,
+      "rule": "force-dynamic-with-revalidate"
+    },
+    {
+      "id": "layout-fetch-conflict:C:/Users/Pc/Desktop/personal-projects/next-cache-inspector/fixtures/test-app/app/blog/layout.tsx:6",
+      "severity": "warning",
+      "message": "Conflicting fetch configurations for https://example.com/api/posts in parent and child layouts.",
+      "sourceFile": "C:/Users/Pc/Desktop/personal-projects/next-cache-inspector/fixtures/test-app/app/blog/layout.tsx",
+      "line": 6,
+      "rule": "layout-fetch-conflict"
+    }
+  ],
+  "meta": {
+    "appDir": "C:/Users/Pc/Desktop/personal-projects/next-cache-inspector/fixtures/test-app/app",
+    "scannedAt": "2026-05-02T23:36:15.688Z",
+    "version": "0.1.0"
+  }
+}
