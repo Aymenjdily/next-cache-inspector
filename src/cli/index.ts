@@ -3,6 +3,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { spawn } from "node:child_process";
+import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 
 import chalk from "chalk";
@@ -32,8 +33,10 @@ function getInspectorRoot(): string {
   const currentDir = path.dirname(currentFilePath);
   // When bundled to dist/cli.js, package root is one level up.
   // When running from src/cli/index.ts, package root is two levels up.
-  const isCompiled = path.extname(currentFilePath) === ".js";
-  return path.resolve(currentDir, isCompiled ? ".." : "..", "..");
+  const isCompiled = path.extname(currentFilePath) === ".js" || path.extname(currentFilePath) === ".mjs";
+  return isCompiled
+    ? path.resolve(currentDir, "..")
+    : path.resolve(currentDir, "..", "..");
 }
 
 async function pathExists(targetPath: string): Promise<boolean> {
@@ -102,15 +105,19 @@ function printEmbedInstructions(projectRoot: string, graphPath: string): void {
   );
 }
 
+function getNextBinPath(): string {
+  const require = createRequire(fileURLToPath(import.meta.url));
+  return require.resolve("next/dist/bin/next");
+}
+
 async function startStandaloneServer(port: number, graphPath: string): Promise<number> {
   const inspectorRoot = getInspectorRoot();
-  const nextBin = path.join(inspectorRoot, "node_modules", ".bin", process.platform === "win32" ? "next.cmd" : "next");
+  const nextBin = getNextBinPath();
 
   return new Promise<number>((resolve, reject) => {
-    const child = spawn(nextBin, ["dev", "--port", String(port)], {
+    const child = spawn(process.execPath, [nextBin, "dev", "--port", String(port)], {
       cwd: inspectorRoot,
       stdio: "inherit",
-      shell: process.platform === "win32",
       env: {
         ...process.env,
         [GRAPH_PATH_ENV_KEY]: graphPath,
