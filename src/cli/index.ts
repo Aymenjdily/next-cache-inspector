@@ -5,6 +5,8 @@ import path from "node:path";
 import { spawn } from "node:child_process";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
+import { tmpdir } from "node:os";
+import { randomBytes } from "node:crypto";
 
 import chalk from "chalk";
 import { Command } from "commander";
@@ -110,13 +112,86 @@ function getNextBinPath(): string {
   return require.resolve("next/dist/bin/next");
 }
 
+/**
+ * Files required for the Next.js dev server to start.
+ */
+const DASHBOARD_FILES = [
+  "src",
+  "public",
+  "next.config.ts",
+  "tsconfig.json",
+  "postcss.config.mjs",
+  "tailwind.config.ts",
+  "components.json",
+  "demo-graph.json",
+  "next-env.d.ts",
+];
+
+/**
+ * When next-cache-inspector is installed via npm (globally or locally),
+ * the package lives inside node_modules. Next.js intentionally skips
+ * transpilation and path-alias resolution for files inside node_modules
+ * (see next-swc-loader's maybeExclude and JsConfigPathsPlugin).
+ *
+ * To work around this, we copy the dashboard source files to a temporary
+ * directory outside node_modules and run `next dev` from there.
+ */
+async function prepareTempDashboardDir(inspectorRoot: string): Promise<string> {
+  const suffix = randomBytes(8).toString("hex");
+  const tempDir = path.join(tmpdir(), `next-cache-inspector-${suffix}`);
+
+  await fs.mkdir(tempDir, { recursive: true });
+
+  // Copy required files
+  for (const file of DASHBOARD_FILES) {
+    const srcPath = path.join(inspectorRoot, file);
+    if (await pathExists(srcPath)) {
+      const destPath = path.join(tempDir, file);
+      const stat = await fs.stat(srcPath);
+      if (stat.isDirectory()) {
+        await fs.cp(srcPath, destPath, { recursive: true, force: true });
+      } else {
+        await fs.copyFile(srcPath, destPath);
+      }
+    }
+  }
+
+  // Write a minimal package.json so Next.js can read the project name
+  await fs.writeFile(
+    path.join(tempDir, "package.json"),
+    JSON.stringify({ name: "next-cache-inspector-dashboard", version: "0.1.2" }, null, 2),
+  );
+
+  // Create a junction (Windows) or symlink (Unix) to node_modules so
+  // dependencies are shared and we don't have to copy them.
+  const nodeModulesSrc = path.join(inspectorRoot, "node_modules");
+  const nodeModulesDest = path.join(tempDir, "node_modules");
+  if (await pathExists(nodeModulesSrc)) {
+    const linkType = process.platform === "win32" ? "junction" : "dir";
+    await fs.symlink(nodeModulesSrc, nodeModulesDest, linkType);
+  }
+
+  return tempDir;
+}
+
+async function cleanupTempDashboardDir(tempDir: string): Promise<void> {
+  try {
+    // On Windows, removing a junction requires special handling.
+    // fs.rm with recursive should handle it.
+    await fs.rm(tempDir, { recursive: true, force: true });
+  } catch {
+    // Best-effort cleanup; the OS will reclaim temp files eventually.
+  }
+}
+
 async function startStandaloneServer(port: number, graphPath: string): Promise<number> {
   const inspectorRoot = getInspectorRoot();
   const nextBin = getNextBinPath();
+  const tempDir = await prepareTempDashboardDir(inspectorRoot);
 
   return new Promise<number>((resolve, reject) => {
     const child = spawn(process.execPath, [nextBin, "dev", "--port", String(port)], {
-      cwd: inspectorRoot,
+      cwd: tempDir,
       stdio: "inherit",
       env: {
         ...process.env,
@@ -127,7 +202,8 @@ async function startStandaloneServer(port: number, graphPath: string): Promise<n
     });
 
     child.on("error", reject);
-    child.on("exit", (code) => {
+    child.on("exit", async (code) => {
+      await cleanupTempDashboardDir(tempDir);
       resolve(code ?? 0);
     });
   });
