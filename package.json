@@ -7,16 +7,10 @@
     "next-cache-inspector": "dist/cli.mjs"
   },
   "exports": {
-    ".": "./dist/cli.mjs",
-    "./devtools": {
-      "types": "./src/devtools/index.d.ts",
-      "import": "./dist/devtools.mjs",
-      "default": "./dist/devtools.mjs"
-    }
+    ".": "./dist/cli.mjs"
   },
   "files": [
     "dist",
-    "dist/devtools.d.ts",
     "src",
     "public",
     "next.config.ts",
