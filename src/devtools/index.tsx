@@ -23,7 +23,7 @@ interface CacheData {
   };
 }
 
-export default function CacheInspector(): React.JSX.Element | null {
+function CacheInspector(): React.JSX.Element | null {
   const [isOpen, setIsOpen] = useState(false);
   const [data, setData] = useState<CacheData | null>(null);
   const [loading, setLoading] = useState(false);
@@ -221,3 +221,6 @@ export default function CacheInspector(): React.JSX.Element | null {
     </>
   );
 }
+
+export { CacheInspector };
+export default CacheInspector;
