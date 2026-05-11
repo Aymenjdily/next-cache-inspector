@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
 import { z } from "zod";
 
 const subscribeSchema = z.object({
@@ -18,6 +17,16 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
+    // Database functionality is optional and requires DATABASE_URL env var
+    if (!process.env.DATABASE_URL) {
+      return NextResponse.json(
+        { error: "Newsletter is not configured. Set DATABASE_URL environment variable." },
+        { status: 503 },
+      );
+    }
+
+    // Dynamic import to avoid build errors when Prisma client is not generated
+    const { prisma } = await import("@/lib/db");
     const { email } = result.data;
 
     const existing = await prisma.newsletterSubscriber.findUnique({

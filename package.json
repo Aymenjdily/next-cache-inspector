@@ -24,8 +24,7 @@
     "build:cli": "tsup",
     "prepublishOnly": "npm run build:cli",
     "start": "next start",
-    "typecheck": "tsc --noEmit",
-    "postinstall": "prisma generate"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",
