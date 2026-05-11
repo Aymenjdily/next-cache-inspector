@@ -108,7 +108,8 @@ function printEmbedInstructions(projectRoot: string, graphPath: string): void {
 }
 
 function getNextBinPath(): string {
-  const require = createRequire(fileURLToPath(import.meta.url));
+  // Resolve Next.js from the user's project (cwd) instead of from the package
+  const require = createRequire(path.join(process.cwd(), "package.json"));
   return require.resolve("next/dist/bin/next");
 }
 
@@ -162,13 +163,14 @@ async function prepareTempDashboardDir(inspectorRoot: string): Promise<string> {
     JSON.stringify({ name: "next-cache-inspector-dashboard", version: "0.1.2" }, null, 2),
   );
 
-  // Create a junction (Windows) or symlink (Unix) to node_modules so
-  // dependencies are shared and we don't have to copy them.
-  const nodeModulesSrc = path.join(inspectorRoot, "node_modules");
+  // Create a junction (Windows) or symlink (Unix) to the user's project
+  // node_modules so Next.js and all dependencies (including SWC binaries)
+  // are resolved correctly.
+  const userNodeModules = path.join(process.cwd(), "node_modules");
   const nodeModulesDest = path.join(tempDir, "node_modules");
-  if (await pathExists(nodeModulesSrc)) {
+  if (await pathExists(userNodeModules)) {
     const linkType = process.platform === "win32" ? "junction" : "dir";
-    await fs.symlink(nodeModulesSrc, nodeModulesDest, linkType);
+    await fs.symlink(userNodeModules, nodeModulesDest, linkType);
   }
 
   return tempDir;
