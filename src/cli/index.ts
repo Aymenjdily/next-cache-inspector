@@ -138,9 +138,11 @@ const DASHBOARD_FILES = [
  */
 async function prepareTempDashboardDir(inspectorRoot: string, projectRoot: string): Promise<string> {
   const suffix = randomBytes(8).toString("hex");
-  // Create temp dir inside the user's project so symlinks to node_modules
-  // stay within the same filesystem tree (required by Turbopack).
-  const tempDir = path.join(projectRoot, ".next", "cache-inspector", `.tmp-${suffix}`);
+  // Create temp dir as a sibling to the user's project so it's outside the
+  // project tree (avoids Next.js picking up user's middleware/config files)
+  // but on the same drive so symlinks work with Turbopack.
+  const projectParent = path.dirname(projectRoot);
+  const tempDir = path.join(projectParent, `.next-cache-inspector-${suffix}`);
 
   await fs.mkdir(tempDir, { recursive: true });
 
