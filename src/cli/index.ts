@@ -5,7 +5,6 @@ import path from "node:path";
 import { spawn, exec } from "node:child_process";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
-import { tmpdir } from "node:os";
 import { randomBytes } from "node:crypto";
 
 import chalk from "chalk";
@@ -137,9 +136,11 @@ const DASHBOARD_FILES = [
  * To work around this, we copy the dashboard source files to a temporary
  * directory outside node_modules and run `next dev` from there.
  */
-async function prepareTempDashboardDir(inspectorRoot: string): Promise<string> {
+async function prepareTempDashboardDir(inspectorRoot: string, projectRoot: string): Promise<string> {
   const suffix = randomBytes(8).toString("hex");
-  const tempDir = path.join(tmpdir(), `next-cache-inspector-${suffix}`);
+  // Create temp dir inside the user's project so symlinks to node_modules
+  // stay within the same filesystem tree (required by Turbopack).
+  const tempDir = path.join(projectRoot, ".next", "cache-inspector", `.tmp-${suffix}`);
 
   await fs.mkdir(tempDir, { recursive: true });
 
@@ -166,7 +167,7 @@ async function prepareTempDashboardDir(inspectorRoot: string): Promise<string> {
   // Create a junction (Windows) or symlink (Unix) to the user's project
   // node_modules so Next.js and all dependencies (including SWC binaries)
   // are resolved correctly.
-  const userNodeModules = path.join(process.cwd(), "node_modules");
+  const userNodeModules = path.join(projectRoot, "node_modules");
   const nodeModulesDest = path.join(tempDir, "node_modules");
   if (await pathExists(userNodeModules)) {
     const linkType = process.platform === "win32" ? "junction" : "dir";
@@ -200,10 +201,10 @@ function openBrowser(url: string): void {
   });
 }
 
-async function startStandaloneServer(port: number, graphPath: string): Promise<number> {
+async function startStandaloneServer(port: number, graphPath: string, projectRoot: string): Promise<number> {
   const inspectorRoot = getInspectorRoot();
   const nextBin = getNextBinPath();
-  const tempDir = await prepareTempDashboardDir(inspectorRoot);
+  const tempDir = await prepareTempDashboardDir(inspectorRoot, projectRoot);
 
   return new Promise<number>((resolve, reject) => {
     const child = spawn(process.execPath, [nextBin, "dev", "--port", String(port)], {
@@ -250,7 +251,7 @@ async function run(): Promise<number> {
     }
 
     process.stdout.write(`${chalk.cyan("Starting dashboard")} ${chalk.white(`http://localhost:${options.port}`)}\n`);
-    return startStandaloneServer(options.port, graphPath);
+    return startStandaloneServer(options.port, graphPath, projectRoot);
   } catch (error) {
     if (error instanceof z.ZodError) {
       process.stderr.write(`${chalk.red("Invalid arguments")}\n`);
