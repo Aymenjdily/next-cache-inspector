@@ -9,8 +9,9 @@
   "exports": {
     ".": "./dist/cli.mjs",
     "./devtools": {
+      "types": "./dist/devtools.d.ts",
       "import": "./dist/devtools.mjs",
-      "types": "./dist/devtools.d.ts"
+      "default": "./dist/devtools.mjs"
     }
   },
   "files": [
