@@ -1,21 +1,38 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+
+interface RouteData {
+  id: string;
+  path: string;
+  type: "static" | "dynamic" | "ISR" | "PPR";
+  segmentConfig: Record<string, unknown>;
+  fetches: Array<{
+    url?: string;
+    cache?: string;
+    revalidate?: number | false;
+    tags: string[];
+  }>;
+}
+
+interface CacheTag {
+  name: string;
+  usedBy: string[];
+}
+
+interface AntiPattern {
+  severity: "warning" | "error";
+  message: string;
+  rule: string;
+  sourceFile: string;
+  line: number;
+}
 
 interface CacheData {
-  routes: Array<{
-    id: string;
-    path: string;
-    type: string;
-    segmentConfig: Record<string, unknown>;
-  }>;
-  tags: Array<{ name: string; usedBy: string[] }>;
-  antiPatterns: Array<{
-    severity: string;
-    message: string;
-    rule: string;
-    sourceFile: string;
-  }>;
+  routes: RouteData[];
+  tags: CacheTag[];
+  revalidators: Array<{ type: string; target: string }>;
+  antiPatterns: AntiPattern[];
   meta: {
     appDir: string;
     scannedAt: string;
@@ -23,8 +40,258 @@ interface CacheData {
   };
 }
 
+type Tab = "overview" | "routes" | "tags" | "fetches" | "issues";
+
+const routeTypeColors: Record<string, string> = {
+  static: "#10b981",
+  dynamic: "#3b82f6",
+  ISR: "#f59e0b",
+  PPR: "#a855f7",
+};
+
+function TabButton({
+  active,
+  label,
+  onClick,
+}: {
+  active: boolean;
+  label: string;
+  onClick: () => void;
+}): React.JSX.Element {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`px-3 py-1.5 text-xs font-medium transition-colors rounded-md ${
+        active
+          ? "bg-[#FFC000] text-[#111]"
+          : "text-gray-400 hover:text-white hover:bg-[#1a1a1a]"
+      }`}
+    >
+      {label}
+    </button>
+  );
+}
+
+function StatCard({ label, value, color }: { label: string; value: number; color: string }): React.JSX.Element {
+  return (
+    <div className="rounded-lg border border-[#333] bg-[#111] p-3">
+      <div className="text-2xl font-semibold" style={{ color }}>{value}</div>
+      <div className="text-xs text-gray-400">{label}</div>
+    </div>
+  );
+}
+
+function OverviewTab({ data }: { data: CacheData }): React.JSX.Element {
+  const routeTypeCounts = useMemo(() => {
+    return data.routes.reduce((acc, r) => {
+      acc[r.type] = (acc[r.type] ?? 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+  }, [data.routes]);
+
+  const totalFetches = data.routes.reduce((sum, r) => sum + r.fetches.length, 0);
+
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-4 gap-2">
+        <StatCard label="Routes" value={data.routes.length} color="#10b981" />
+        <StatCard label="Tags" value={data.tags.length} color="#3b82f6" />
+        <StatCard label="Fetches" value={totalFetches} color="#f59e0b" />
+        <StatCard label="Issues" value={data.antiPatterns.length} color="#ef4444" />
+      </div>
+
+      <div className="rounded-lg border border-[#333] bg-[#111] p-4">
+        <h3 className="mb-3 text-xs font-medium uppercase tracking-wider text-gray-500">Route Types</h3>
+        <div className="space-y-2">
+          {Object.entries(routeTypeCounts).map(([type, count]) => (
+            <div key={type} className="flex items-center gap-2">
+              <span
+                className="h-2.5 w-2.5 rounded-full"
+                style={{ backgroundColor: routeTypeColors[type] || "#666" }}
+              />
+              <span className="text-sm text-gray-300">{type}</span>
+              <div className="ml-auto flex-1 mx-2 h-1.5 rounded-full bg-[#0a0a0a]">
+                <div
+                  className="h-full rounded-full transition-all"
+                  style={{
+                    width: `${(count / data.routes.length) * 100}%`,
+                    backgroundColor: routeTypeColors[type] || "#666",
+                  }}
+                />
+              </div>
+              <span className="text-sm text-gray-500">{count}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {data.antiPatterns.length > 0 && (
+        <div className="rounded-lg border border-red-500/30 bg-red-500/5 p-4">
+          <h3 className="mb-2 text-xs font-medium uppercase tracking-wider text-red-400">Issues Detected</h3>
+          <div className="space-y-2">
+            {data.antiPatterns.slice(0, 3).map((pattern, i) => (
+              <div key={i} className="text-sm text-red-300">
+                • {pattern.message}
+              </div>
+            ))}
+            {data.antiPatterns.length > 3 && (
+              <div className="text-xs text-red-400/60">+{data.antiPatterns.length - 3} more...</div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function RoutesTab({ routes }: { routes: RouteData[] }): React.JSX.Element {
+  const [filter, setFilter] = useState("");
+
+  const filtered = useMemo(() => {
+    if (!filter) return routes;
+    return routes.filter(
+      (r) =>
+        r.path.toLowerCase().includes(filter.toLowerCase()) ||
+        r.type.toLowerCase().includes(filter.toLowerCase())
+    );
+  }, [routes, filter]);
+
+  return (
+    <div className="space-y-3">
+      <input
+        type="text"
+        placeholder="Filter routes..."
+        value={filter}
+        onChange={(e) => setFilter(e.target.value)}
+        className="w-full rounded-md border border-[#333] bg-[#0a0a0a] px-3 py-1.5 text-sm text-white placeholder:text-gray-600 outline-none focus:border-[#FFC000]"
+      />
+
+      <div className="space-y-1 max-h-[400px] overflow-auto">
+        {filtered.map((route) => (
+          <div
+            key={route.id}
+            className="flex items-center justify-between rounded-md border border-[#333] bg-[#111] px-3 py-2"
+          >
+            <div className="flex items-center gap-2">
+              <span
+                className="h-2 w-2 rounded-full"
+                style={{ backgroundColor: routeTypeColors[route.type] || "#666" }}
+              />
+              <span className="text-sm text-gray-300">{route.path}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              {route.fetches.length > 0 && (
+                <span className="text-xs text-gray-500">{route.fetches.length} fetches</span>
+              )}
+              <span className="rounded bg-[#1a1a1a] px-1.5 py-0.5 text-xs text-gray-400">
+                {route.type}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function TagsTab({ tags }: { tags: CacheTag[] }): React.JSX.Element {
+  return (
+    <div className="space-y-2 max-h-[450px] overflow-auto">
+      {tags.map((tag) => (
+        <div key={tag.name} className="rounded-md border border-[#333] bg-[#111] p-3">
+          <div className="flex items-center justify-between">
+            <span className="font-mono text-sm text-[#FFC000]">{tag.name}</span>
+            <span className="text-xs text-gray-500">{tag.usedBy.length} routes</span>
+          </div>
+          <div className="mt-1 text-xs text-gray-600">
+            {tag.usedBy.slice(0, 3).join(", ")}
+            {tag.usedBy.length > 3 && ` +${tag.usedBy.length - 3} more`}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function FetchesTab({ routes }: { routes: RouteData[] }): React.JSX.Element {
+  const fetches = useMemo(() => {
+    return routes.flatMap((r) =>
+      r.fetches.map((f) => ({ ...f, routePath: r.path }))
+    );
+  }, [routes]);
+
+  return (
+    <div className="space-y-2 max-h-[450px] overflow-auto">
+      {fetches.map((fetch, i) => (
+        <div key={i} className="rounded-md border border-[#333] bg-[#111] p-3">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-gray-300">{fetch.url || "Dynamic URL"}</span>
+            {fetch.cache && (
+              <span className="rounded bg-[#1a1a1a] px-1.5 py-0.5 text-xs text-gray-400">
+                {fetch.cache}
+              </span>
+            )}
+          </div>
+          <div className="mt-1 text-xs text-gray-500">{fetch.routePath}</div>
+          {fetch.tags.length > 0 && (
+            <div className="mt-1 flex gap-1">
+              {fetch.tags.map((tag) => (
+                <span key={tag} className="rounded bg-[#FFC000]/10 px-1.5 py-0.5 text-xs text-[#FFC000]">
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function IssuesTab({ antiPatterns }: { antiPatterns: AntiPattern[] }): React.JSX.Element {
+  return (
+    <div className="space-y-2 max-h-[450px] overflow-auto">
+      {antiPatterns.length === 0 ? (
+        <div className="flex items-center justify-center py-8 text-sm text-emerald-400">
+          ✓ No issues detected
+        </div>
+      ) : (
+        antiPatterns.map((pattern, i) => (
+          <div
+            key={i}
+            className={`rounded-md border p-3 ${
+              pattern.severity === "error"
+                ? "border-red-500/30 bg-red-500/10"
+                : "border-amber-500/30 bg-amber-500/10"
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <span
+                className={`rounded px-1.5 py-0.5 text-xs font-medium ${
+                  pattern.severity === "error"
+                    ? "bg-red-500/20 text-red-400"
+                    : "bg-amber-500/20 text-amber-400"
+                }`}
+              >
+                {pattern.severity}
+              </span>
+              <span className="text-sm font-medium text-gray-300">{pattern.rule}</span>
+            </div>
+            <div className="mt-1 text-sm text-gray-400">{pattern.message}</div>
+            <div className="mt-1 text-xs text-gray-600">
+              {pattern.sourceFile}:{pattern.line}
+            </div>
+          </div>
+        ))
+      )}
+    </div>
+  );
+}
+
 function CacheInspector(): React.JSX.Element | null {
   const [isOpen, setIsOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<Tab>("overview");
   const [data, setData] = useState<CacheData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -38,24 +305,30 @@ function CacheInspector(): React.JSX.Element | null {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ appDir: "./src/app" }),
       });
-      const result = (await response.json()) as { graph?: CacheData };
+      
+      if (response.status === 404) {
+        setError("No /api/scan endpoint found. Add it to your app or run: npx next-cache-inspector --dir .");
+        return;
+      }
+      
+      const result = (await response.json()) as { graph?: CacheData; error?: string };
       if (result.graph) {
         setData(result.graph);
       } else {
-        setError("Failed to scan project");
+        setError(result.error || "Failed to scan project");
       }
     } catch {
-      setError("Failed to connect to scanner");
+      setError("Failed to connect. Make sure your dev server is running.");
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    if (isOpen && !data && !loading) {
+    if (isOpen && !data && !loading && !error) {
       void scan();
     }
-  }, [isOpen, data, loading, scan]);
+  }, [isOpen, data, loading, error, scan]);
 
   if (process.env.NODE_ENV === "production") return null;
 
@@ -66,7 +339,7 @@ function CacheInspector(): React.JSX.Element | null {
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         className={`fixed bottom-4 right-4 z-[9999] flex h-12 w-12 items-center justify-center rounded-full shadow-lg transition-all hover:scale-110 ${
-          isOpen ? "bg-red-500 rotate-45" : "bg-[#FFC000]"
+          isOpen ? "bg-red-500" : "bg-[#FFC000]"
         }`}
         title={isOpen ? "Close Inspector" : "Open Cache Inspector"}
       >
@@ -99,123 +372,89 @@ function CacheInspector(): React.JSX.Element | null {
 
       {/* Panel */}
       {isOpen && (
-        <div className="fixed bottom-20 right-4 z-[9998] h-[600px] w-[480px] overflow-hidden rounded-xl border border-[#333] bg-[#111] shadow-2xl">
-          <div className="flex h-10 items-center justify-between border-b border-[#333] px-4">
-            <span className="text-sm font-medium text-white">Cache Inspector</span>
+        <div className="fixed bottom-20 right-4 z-[9998] flex h-[600px] w-[520px] flex-col overflow-hidden rounded-xl border border-[#333] bg-[#0a0a0a] shadow-2xl">
+          {/* Header */}
+          <div className="flex h-12 shrink-0 items-center justify-between border-b border-[#333] px-4">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-white">Cache Inspector</span>
+              {data && (
+                <span className="rounded bg-[#1a1a1a] px-1.5 py-0.5 text-xs text-gray-500">
+                  {data.routes.length} routes
+                </span>
+              )}
+            </div>
             <button
               type="button"
               onClick={scan}
               disabled={loading}
-              className="rounded bg-[#FFC000] px-2 py-1 text-xs font-medium text-[#111] transition-opacity hover:opacity-80 disabled:opacity-50"
+              className="rounded bg-[#FFC000] px-3 py-1 text-xs font-medium text-[#111] transition-opacity hover:opacity-80 disabled:opacity-50"
             >
               {loading ? "Scanning..." : "Rescan"}
             </button>
           </div>
 
-          <div className="h-[calc(100%-40px)] overflow-auto p-4">
+          {/* Tabs */}
+          {data && (
+            <div className="flex gap-1 border-b border-[#333] px-4 py-2">
+              <TabButton active={activeTab === "overview"} label="Overview" onClick={() => setActiveTab("overview")} />
+              <TabButton active={activeTab === "routes"} label="Routes" onClick={() => setActiveTab("routes")} />
+              <TabButton active={activeTab === "tags"} label="Tags" onClick={() => setActiveTab("tags")} />
+              <TabButton active={activeTab === "fetches"} label="Fetches" onClick={() => setActiveTab("fetches")} />
+              <TabButton active={activeTab === "issues"} label="Issues" onClick={() => setActiveTab("issues")} />
+            </div>
+          )}
+
+          {/* Content */}
+          <div className="flex-1 overflow-auto p-4">
             {error && (
-              <div className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-400">
-                {error}
+              <div className="space-y-3">
+                <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-400">
+                  {error}
+                </div>
+                <div className="rounded-lg border border-[#333] bg-[#111] p-4 text-sm text-gray-400">
+                  <p className="mb-2 font-medium text-white">Quick Setup:</p>
+                  <p>Add this API route to your app:</p>
+                  <pre className="mt-2 rounded bg-[#0a0a0a] p-2 font-mono text-xs text-gray-500">
+                    {`// app/api/scan/route.ts
+import { analyze, writeGraph } from "next-cache-inspector/engine";
+import { NextRequest, NextResponse } from "next/server";
+
+export async function POST(req: NextRequest) {
+  const { appDir } = await req.json();
+  const graph = await analyze(appDir);
+  return NextResponse.json({ graph });
+}`}
+                  </pre>
+                </div>
               </div>
             )}
 
             {loading && !data && (
               <div className="flex h-full items-center justify-center">
-                <div className="text-sm text-gray-400">Scanning project... Check console for details.</div>
+                <div className="text-center">
+                  <div className="mb-2 h-6 w-6 animate-spin rounded-full border-2 border-[#333] border-t-[#FFC000] mx-auto" />
+                  <div className="text-sm text-gray-400">Scanning your project...</div>
+                </div>
               </div>
             )}
 
             {data && (
-              <div className="space-y-4">
-                {/* Stats */}
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="rounded-lg bg-[#1a1a1a] p-3">
-                    <div className="text-lg font-semibold text-white">{data.routes.length}</div>
-                    <div className="text-xs text-gray-400">Routes</div>
-                  </div>
-                  <div className="rounded-lg bg-[#1a1a1a] p-3">
-                    <div className="text-lg font-semibold text-white">{data.tags.length}</div>
-                    <div className="text-xs text-gray-400">Tags</div>
-                  </div>
-                  <div className="rounded-lg bg-[#1a1a1a] p-3">
-                    <div className="text-lg font-semibold text-white">{data.antiPatterns.length}</div>
-                    <div className="text-xs text-gray-400">Issues</div>
-                  </div>
-                </div>
-
-                {/* Route Types */}
-                <div className="rounded-lg border border-[#333] bg-[#111] p-3">
-                  <h3 className="mb-2 text-xs font-medium uppercase tracking-wider text-gray-500">Route Types</h3>
-                  <div className="space-y-1">
-                    {Object.entries(
-                      data.routes.reduce(
-                        (acc, r) => {
-                          acc[r.type] = (acc[r.type] ?? 0) + 1;
-                          return acc;
-                        },
-                        {} as Record<string, number>
-                      )
-                    ).map(([type, count]) => (
-                      <div key={type} className="flex items-center justify-between">
-                        <span className="text-sm capitalize text-gray-300">{type}</span>
-                        <span className="text-sm text-gray-500">{count}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Tags */}
-                {data.tags.length > 0 && (
-                  <div className="rounded-lg border border-[#333] bg-[#111] p-3">
-                    <h3 className="mb-2 text-xs font-medium uppercase tracking-wider text-gray-500">Cache Tags</h3>
-                    <div className="space-y-1">
-                      {data.tags.slice(0, 10).map((tag) => (
-                        <div key={tag.name} className="flex items-center justify-between">
-                          <span className="font-mono text-sm text-gray-300">{tag.name}</span>
-                          <span className="text-xs text-gray-500">{tag.usedBy.length} routes</span>
-                        </div>
-                      ))}
-                      {data.tags.length > 10 && (
-                        <div className="text-xs text-gray-500">+{data.tags.length - 10} more...</div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Anti-patterns */}
-                {data.antiPatterns.length > 0 && (
-                  <div className="rounded-lg border border-[#333] bg-[#111] p-3">
-                    <h3 className="mb-2 text-xs font-medium uppercase tracking-wider text-gray-500">Issues</h3>
-                    <div className="space-y-2">
-                      {data.antiPatterns.slice(0, 5).map((pattern, i) => (
-                        <div
-                          key={i}
-                          className={`rounded p-2 text-xs ${
-                            pattern.severity === "error"
-                              ? "border border-red-500/30 bg-red-500/10 text-red-400"
-                              : "border border-amber-500/30 bg-amber-500/10 text-amber-400"
-                          }`}
-                        >
-                          <div className="font-medium">{pattern.rule}</div>
-                          <div className="mt-1 text-gray-400">{pattern.message}</div>
-                          <div className="mt-1 text-gray-600">{pattern.sourceFile}</div>
-                        </div>
-                      ))}
-                      {data.antiPatterns.length > 5 && (
-                        <div className="text-xs text-gray-500">+{data.antiPatterns.length - 5} more...</div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Meta */}
-                <div className="rounded-lg border border-[#333] bg-[#111] p-3 text-xs text-gray-500">
-                  <div>Scanned: {new Date(data.meta.scannedAt).toLocaleString()}</div>
-                  <div>Version: {data.meta.version}</div>
-                </div>
-              </div>
+              <>
+                {activeTab === "overview" && <OverviewTab data={data} />}
+                {activeTab === "routes" && <RoutesTab routes={data.routes} />}
+                {activeTab === "tags" && <TagsTab tags={data.tags} />}
+                {activeTab === "fetches" && <FetchesTab routes={data.routes} />}
+                {activeTab === "issues" && <IssuesTab antiPatterns={data.antiPatterns} />}
+              </>
             )}
           </div>
+
+          {/* Footer */}
+          {data && (
+            <div className="shrink-0 border-t border-[#333] px-4 py-2 text-xs text-gray-600">
+              Scanned: {new Date(data.meta.scannedAt).toLocaleString()}
+            </div>
+          )}
         </div>
       )}
     </>
