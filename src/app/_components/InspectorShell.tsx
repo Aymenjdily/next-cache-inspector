@@ -8,6 +8,7 @@ import {
   Info,
   Menu,
   RefreshCw,
+  Search,
   Settings,
   Trash2,
   X,
@@ -160,6 +161,20 @@ export default function InspectorShell({
 
             <h1 className="text-sm font-medium text-white">{viewName}</h1>
           </div>
+
+          {/* Global Search */}
+          {graph && (
+            <div className="hidden md:flex items-center flex-1 max-w-md mx-4">
+              <div className="relative w-full">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-600" />
+                <input
+                  type="text"
+                  placeholder="Search routes, tags..."
+                  className="h-8 w-full rounded-md border border-[#333] bg-[#0a0a0a] px-3 py-1 pl-9 text-sm text-white placeholder:text-gray-600 outline-none focus:border-[#FFC000]"
+                />
+              </div>
+            </div>
+          )}
 
           <div className="flex items-center gap-1">
             <button

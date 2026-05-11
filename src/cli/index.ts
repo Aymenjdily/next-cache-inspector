@@ -6,6 +6,7 @@ import { spawn, exec } from "node:child_process";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import { randomBytes } from "node:crypto";
+import { watch } from "node:fs";
 
 import chalk from "chalk";
 import { Command } from "commander";
@@ -20,6 +21,8 @@ const cliSchema = z.object({
   port: z.number().int().positive().default(4242),
   embed: z.boolean().default(false),
   output: z.string().min(1).default(".next/cache-inspector/"),
+  watch: z.boolean().default(false),
+  export: z.string().optional(),
 });
 
 interface CliOptions {
@@ -28,6 +31,8 @@ interface CliOptions {
   embed: boolean;
   output: string;
   clean?: boolean;
+  watch?: boolean;
+  export?: string;
 }
 
 function getInspectorRoot(): string {
@@ -77,7 +82,9 @@ async function parseCliOptions(): Promise<CliOptions> {
     .option("-p, --port <port>", "Port for the standalone dashboard server", "4242")
     .option("-e, --embed", "Print embed instructions instead of starting a server", false)
     .option("-o, --output <output>", "Output directory for cache-graph.json", ".next/cache-inspector/")
-    .option("--clean", "Remove temp directories and cache files created by the inspector", false);
+    .option("--clean", "Remove temp directories and cache files created by the inspector", false)
+    .option("-w, --watch", "Watch for file changes and auto-rescan", false)
+    .option("--export <format>", "Export report (html, json)", "");
 
   command.parse(process.argv);
 
@@ -87,10 +94,22 @@ async function parseCliOptions(): Promise<CliOptions> {
     embed: boolean;
     output: string;
     clean: boolean;
+    watch: boolean;
+    export: string;
   }>();
 
   if (parsed.clean) {
     return { dir: parsed.dir, port: 0, embed: false, output: parsed.output, clean: true } as CliOptions;
+  }
+
+  if (parsed.export) {
+    return { 
+      dir: parsed.dir, 
+      port: 0, 
+      embed: false, 
+      output: parsed.output, 
+      export: parsed.export 
+    } as CliOptions;
   }
 
   return cliSchema.parse({
@@ -98,6 +117,7 @@ async function parseCliOptions(): Promise<CliOptions> {
     port: Number(parsed.port),
     embed: parsed.embed,
     output: parsed.output,
+    watch: parsed.watch,
   });
 }
 
@@ -284,6 +304,103 @@ async function cleanInspectorFiles(projectRoot: string): Promise<void> {
   }
 }
 
+async function generateReport(graph: Awaited<ReturnType<typeof analyze>>, format: string, projectRoot: string): Promise<void> {
+  const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+  
+  if (format === "json") {
+    const reportPath = path.join(projectRoot, `cache-report-${timestamp}.json`);
+    await fs.writeFile(reportPath, JSON.stringify(graph, null, 2));
+    process.stdout.write(`${chalk.green("Report exported")} ${chalk.white(reportPath)}\n`);
+    return;
+  }
+  
+  if (format === "html") {
+    const reportPath = path.join(projectRoot, `cache-report-${timestamp}.html`);
+    const html = generateHtmlReport(graph);
+    await fs.writeFile(reportPath, html);
+    process.stdout.write(`${chalk.green("Report exported")} ${chalk.white(reportPath)}\n`);
+    return;
+  }
+  
+  process.stderr.write(`${chalk.red("Unknown export format")}: ${format}. Use "html" or "json".\n`);
+}
+
+function generateHtmlReport(graph: Awaited<ReturnType<typeof analyze>>): string {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cache Report - ${graph.meta.appDir}</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0a0a0a; color: #e5e5e5; padding: 2rem; }
+    .container { max-width: 1200px; margin: 0 auto; }
+    h1 { color: #FFC000; margin-bottom: 0.5rem; }
+    .meta { color: #666; margin-bottom: 2rem; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+    .card { background: #111; border: 1px solid #333; border-radius: 8px; padding: 1.5rem; }
+    .card h3 { color: #999; font-size: 0.875rem; margin-bottom: 0.5rem; }
+    .card .value { font-size: 2rem; font-weight: bold; color: #FFC000; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    th, td { text-align: left; padding: 0.75rem; border-bottom: 1px solid #333; }
+    th { color: #999; font-weight: 500; }
+    .badge { display: inline-block; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 500; }
+    .static { background: #10b98120; color: #10b981; }
+    .dynamic { background: #3b82f620; color: #3b82f6; }
+    .ISR { background: #f59e0b20; color: #f59e0b; }
+    .PPR { background: #a855f720; color: #a855f7; }
+    .warning { background: #f59e0b20; color: #f59e0b; }
+    .error { background: #ef444420; color: #ef4444; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Cache Inspector Report</h1>
+    <div class="meta">${graph.meta.appDir} &bull; ${new Date(graph.meta.scannedAt).toLocaleString()}</div>
+    
+    <div class="grid">
+      <div class="card"><h3>Routes</h3><div class="value">${graph.routes.length}</div></div>
+      <div class="card"><h3>Tags</h3><div class="value">${graph.tags.length}</div></div>
+      <div class="card"><h3>Fetches</h3><div class="value">${graph.routes.reduce((s, r) => s + r.fetches.length, 0)}</div></div>
+      <div class="card"><h3>Issues</h3><div class="value">${graph.antiPatterns.length}</div></div>
+    </div>
+
+    <h2>Routes</h2>
+    <table>
+      <thead><tr><th>Path</th><th>Type</th><th>Fetches</th></tr></thead>
+      <tbody>
+        ${graph.routes.map(r => `
+          <tr>
+            <td>${r.path}</td>
+            <td><span class="badge ${r.type}">${r.type}</span></td>
+            <td>${r.fetches.length}</td>
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
+
+    ${graph.antiPatterns.length > 0 ? `
+    <h2>Issues</h2>
+    <table>
+      <thead><tr><th>Severity</th><th>Rule</th><th>Message</th><th>File</th></tr></thead>
+      <tbody>
+        ${graph.antiPatterns.map(p => `
+          <tr>
+            <td><span class="badge ${p.severity}">${p.severity}</span></td>
+            <td>${p.rule}</td>
+            <td>${p.message}</td>
+            <td>${p.sourceFile}:${p.line}</td>
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
+    ` : ""}
+  </div>
+</body>
+</html>`;
+}
+
 async function run(): Promise<number> {
   try {
     const options = await parseCliOptions();
@@ -307,9 +424,43 @@ async function run(): Promise<number> {
 
     process.stdout.write(`${chalk.green("Graph written")} ${chalk.white(graphPath)}\n`);
 
+    if (options.export) {
+      await generateReport(graph, options.export, projectRoot);
+      return 0;
+    }
+
     if (options.embed) {
       printEmbedInstructions(projectRoot, graphPath);
       return 0;
+    }
+
+    if (options.watch) {
+      process.stdout.write(`${chalk.cyan("Watch mode enabled")} ${chalk.white("(Press Ctrl+C to stop)")}\n`);
+      
+      // Initial scan and start server
+      const serverPromise = startStandaloneServer(options.port, graphPath, projectRoot);
+      
+      // Watch for changes
+      const watcher = watch(appDir, { recursive: true }, async (eventType, filename) => {
+        if (filename && (filename.endsWith(".tsx") || filename.endsWith(".ts") || filename.endsWith(".jsx") || filename.endsWith(".js"))) {
+          process.stdout.write(`\n${chalk.yellow("File changed")} ${chalk.white(filename)} ${chalk.cyan("- Rescanning...")}\n`);
+          try {
+            const newGraph = await analyze(appDir);
+            await writeGraph(newGraph, graphPath);
+            process.stdout.write(`${chalk.green("Graph updated")} ${chalk.white(graphPath)}\n`);
+          } catch (err) {
+            process.stderr.write(`${chalk.red("Rescan failed")}: ${err}\n`);
+          }
+        }
+      });
+      
+      // Handle cleanup on exit
+      process.on("SIGINT", () => {
+        watcher.close();
+        process.exit(0);
+      });
+      
+      return serverPromise;
     }
 
     process.stdout.write(`${chalk.cyan("Starting dashboard")} ${chalk.white(`http://localhost:${options.port}`)}\n`);

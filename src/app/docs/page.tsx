@@ -9,6 +9,10 @@ import {
   GitBranch,
   ShieldAlert,
   ArrowRight,
+  Eye,
+  RefreshCw,
+  FileCode,
+  Download,
 } from "lucide-react";
 import Navbar from "@/app/_components/landing/Navbar";
 import Footer from "@/app/_components/landing/Footer";
@@ -73,7 +77,7 @@ next-cache-inspector --dir ./my-app`}</code>
           </div>
         </section>
 
-        {/* Views */}
+        {/* Features */}
         <section className="mb-12">
           <h2 className="mb-4 text-lg font-medium text-white">Inspector Views</h2>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -107,6 +111,85 @@ next-cache-inspector --dir ./my-app`}</code>
               title="Rules"
               description="Catch caching anti-patterns and misconfigurations before they cause issues in production."
             />
+          </div>
+        </section>
+
+        {/* CLI Options */}
+        <section className="mb-12">
+          <h2 className="mb-4 text-lg font-medium text-white">CLI Options</h2>
+          <div className="space-y-3">
+            {[
+              {
+                cmd: "--watch, -w",
+                desc: "Watch for file changes and auto-rescan",
+                example: "next-cache-inspector --dir . --watch",
+              },
+              {
+                cmd: "--export <format>",
+                desc: "Export report as HTML or JSON",
+                example: "next-cache-inspector --dir . --export html",
+              },
+              {
+                cmd: "--clean",
+                desc: "Remove temp directories and cache files",
+                example: "next-cache-inspector --dir . --clean",
+              },
+              {
+                cmd: "--port, -p",
+                desc: "Change the dashboard server port",
+                example: "next-cache-inspector --dir . --port 3000",
+              },
+            ].map((item) => (
+              <div key={item.cmd} className="rounded-lg border border-[#333] bg-[#111] p-4">
+                <div className="flex items-center gap-2">
+                  <Terminal className="h-4 w-4 text-[#FFC000]" />
+                  <span className="font-mono text-sm text-[#FFC000]">{item.cmd}</span>
+                </div>
+                <p className="mt-1 text-[13px] text-gray-400">{item.desc}</p>
+                <pre className="mt-2 rounded bg-[#0a0a0a] p-2 font-mono text-[11px] text-gray-500">
+                  {item.example}
+                </pre>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Watch Mode */}
+        <section className="mb-12">
+          <div className="flex items-center gap-3 mb-4">
+            <RefreshCw className="h-5 w-5 text-[#FFC000]" />
+            <h2 className="text-lg font-medium text-white">Watch Mode</h2>
+          </div>
+          <p className="mb-4 text-[13px] text-gray-400">
+            Automatically rescan your project when files change. Perfect for development.
+          </p>
+          <pre className="overflow-x-auto rounded-md bg-[#0a0a0a] p-4 font-mono text-[13px] text-gray-300">
+            <code>npx next-cache-inspector --dir . --watch</code>
+          </pre>
+        </section>
+
+        {/* Export Reports */}
+        <section className="mb-12">
+          <div className="flex items-center gap-3 mb-4">
+            <Download className="h-5 w-5 text-[#FFC000]" />
+            <h2 className="text-lg font-medium text-white">Export Reports</h2>
+          </div>
+          <p className="mb-4 text-[13px] text-gray-400">
+            Generate shareable HTML reports or JSON exports for CI/CD integration.
+          </p>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="rounded-lg border border-[#333] bg-[#111] p-4">
+              <div className="text-sm font-medium text-white mb-2">HTML Report</div>
+              <pre className="rounded bg-[#0a0a0a] p-2 font-mono text-[11px] text-gray-500">
+                next-cache-inspector --dir . --export html
+              </pre>
+            </div>
+            <div className="rounded-lg border border-[#333] bg-[#111] p-4">
+              <div className="text-sm font-medium text-white mb-2">JSON Export</div>
+              <pre className="rounded bg-[#0a0a0a] p-2 font-mono text-[11px] text-gray-500">
+                next-cache-inspector --dir . --export json
+              </pre>
+            </div>
           </div>
         </section>
 

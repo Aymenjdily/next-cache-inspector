@@ -12,6 +12,12 @@ import {
   FolderOpen,
   Loader2,
   Radar,
+  Search,
+  Zap,
+  Eye,
+  FileCode,
+  GitBranch,
+  RefreshCw,
 } from "lucide-react";
 
 import { useInspectorStore } from "@/app/_store/inspectorStore";
@@ -49,6 +55,13 @@ function addRecentProject(path: string): void {
   const next = [path, ...filtered].slice(0, MAX_RECENT);
   window.localStorage.setItem(RECENT_PROJECTS_KEY, JSON.stringify(next));
 }
+
+const features = [
+  { icon: Search, title: "Scan", desc: "Analyze routes, fetches \u0026 cache config" },
+  { icon: Eye, title: "Visualize", desc: "Interactive topology \u0026 flow diagrams" },
+  { icon: FileCode, title: "Detect", desc: "Find anti-patterns \u0026 issues" },
+  { icon: GitBranch, title: "Track", desc: "Monitor tags \u0026 revalidation" },
+];
 
 export default function ScanScreen(): React.JSX.Element {
   const router = useRouter();
@@ -158,23 +171,49 @@ export default function ScanScreen(): React.JSX.Element {
   }, []);
 
   return (
-    <div className="flex h-[calc(100vh-56px)] w-full flex-col items-center justify-center bg-[#111] px-4">
-      <div className="w-full max-w-[480px] rounded-lg border border-[#333] bg-[#111] p-8">
-        <div className="space-y-6">
-          {/* Icon + Title Block */}
-          <div className="flex flex-col items-center text-center">
-            <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl border border-[#333] bg-[#1a1a1a]">
-              <Radar className="h-6 w-6 text-[#FFC000]" strokeWidth={1.5} />
-            </div>
-            <h1 className="mt-4 text-lg font-semibold text-white">
-              Inspect your cache
-            </h1>
-            <p className="mt-1.5 text-sm leading-relaxed text-gray-400">
-              Select a Next.js project to analyze its App Router caching strategy.
+    <div className="flex min-h-[calc(100vh-56px)] w-full flex-col items-center justify-center bg-[#111] px-4 py-8">
+      <div className="w-full max-w-[600px]">
+        {/* Hero Section */}
+        <div className="mb-8 text-center">
+          <div className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-[#333] bg-[#1a1a1a]">
+            <Radar className="h-7 w-7 text-[#FFC000]" strokeWidth={1.5} />
+          </div>
+          <h1 className="text-xl font-semibold text-white">Cache Inspector</h1>
+          <p className="mt-2 text-sm text-gray-400">
+            Analyze and optimize your Next.js App Router caching strategy
+          </p>
+        </div>
+
+        {/* Features Grid */}
+        <div className="mb-8 grid grid-cols-2 gap-3">
+          {features.map((feature) => {
+            const Icon = feature.icon;
+            return (
+              <div
+                key={feature.title}
+                className="flex items-start gap-3 rounded-lg border border-[#333] bg-[#111] p-4"
+              >
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#FFC000]/10">
+                  <Icon className="h-4 w-4 text-[#FFC000]" />
+                </div>
+                <div>
+                  <div className="text-sm font-medium text-white">{feature.title}</div>
+                  <div className="mt-0.5 text-xs text-gray-500">{feature.desc}</div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Input Card */}
+        <div className="rounded-xl border border-[#333] bg-[#111] p-6">
+          <div className="mb-4">
+            <h2 className="text-sm font-medium text-white">Select Project</h2>
+            <p className="mt-1 text-xs text-gray-500">
+              Enter the path to your Next.js app directory
             </p>
           </div>
 
-          {/* Path Input + CTA */}
           <div className="space-y-3">
             <div className="relative">
               <FolderOpen className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-600" />
@@ -212,9 +251,9 @@ export default function ScanScreen(): React.JSX.Element {
 
           {/* Recent Projects */}
           {recent.length > 0 && (
-            <div className="space-y-2">
+            <div className="mt-4 space-y-2">
               <div className="text-[11px] font-medium uppercase tracking-wider text-gray-500">
-                Recent
+                Recent Projects
               </div>
               <div className="flex flex-col gap-[2px]">
                 {recent.map((path) => (
@@ -237,13 +276,18 @@ export default function ScanScreen(): React.JSX.Element {
               </div>
             </div>
           )}
+        </div>
 
-          {/* CLI Installation */}
-          <div className="space-y-3">
-            <p className="text-[11px] font-medium uppercase tracking-wider text-gray-500">
-              Or install via CLI
+        {/* CLI Section */}
+        <div className="mt-6 rounded-xl border border-[#333] bg-[#111] p-6">
+          <div className="mb-4">
+            <h2 className="text-sm font-medium text-white">Command Line</h2>
+            <p className="mt-1 text-xs text-gray-500">
+              Use the CLI for watch mode, exports, and more
             </p>
+          </div>
 
+          <div className="space-y-3">
             <div className="space-y-2">
               <div className="relative">
                 <div className="rounded-lg border border-[#333] bg-[#0a0a0a] p-2.5 font-mono text-[12px] text-gray-300 select-all">
@@ -284,17 +328,47 @@ export default function ScanScreen(): React.JSX.Element {
               </div>
             </div>
 
-            <a
-              href="https://www.npmjs.com/package/next-cache-inspector"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-[11px] text-gray-500 transition-colors hover:text-[#FFC000]"
-            >
-              <BookOpen className="h-3 w-3" />
-              <span>Documentation</span>
-              <ArrowUpRight className="h-3 w-3" />
-            </a>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { cmd: "--watch", desc: "Auto-rescan on file changes" },
+                { cmd: "--export html", desc: "Generate HTML report" },
+                { cmd: "--export json", desc: "Export data as JSON" },
+                { cmd: "--clean", desc: "Remove temp directories" },
+              ].map((item) => (
+                <div
+                  key={item.cmd}
+                  className="rounded-md bg-[#0a0a0a] px-3 py-2"
+                >
+                  <div className="font-mono text-[11px] text-[#FFC000]">{item.cmd}</div>
+                  <div className="text-[11px] text-gray-500">{item.desc}</div>
+                </div>
+              ))}
+            </div>
           </div>
+        </div>
+
+        {/* Footer */}
+        <div className="mt-6 flex items-center justify-center gap-4 text-[11px] text-gray-600">
+          <a
+            href="https://www.npmjs.com/package/next-cache-inspector"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 transition-colors hover:text-[#FFC000]"
+          >
+            <BookOpen className="h-3 w-3" />
+            <span>Documentation</span>
+            <ArrowUpRight className="h-3 w-3" />
+          </a>
+          <a
+            href="https://github.com/Aymenjdily/next-cache-inspector"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 transition-colors hover:text-[#FFC000]"
+          >
+            <GitBranch className="h-3 w-3" />
+            <span>GitHub</span>
+            <ArrowUpRight className="h-3 w-3" />
+          </a>
         </div>
       </div>
 
