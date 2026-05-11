@@ -204,7 +204,7 @@ async function startStandaloneServer(port: number, graphPath: string): Promise<n
   const tempDir = await prepareTempDashboardDir(inspectorRoot);
 
   return new Promise<number>((resolve, reject) => {
-    const child = spawn(process.execPath, [nextBin, "dev", "--port", String(port), "--no-open"], {
+    const child = spawn(process.execPath, [nextBin, "dev", "--port", String(port)], {
       cwd: tempDir,
       stdio: "inherit",
       env: {
