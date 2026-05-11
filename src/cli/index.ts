@@ -166,14 +166,14 @@ async function prepareTempDashboardDir(inspectorRoot: string, projectRoot: strin
     JSON.stringify({ name: "next-cache-inspector-dashboard", version: "0.1.2" }, null, 2),
   );
 
-  // Create a junction (Windows) or symlink (Unix) to the user's project
-  // node_modules so Next.js and all dependencies (including SWC binaries)
-  // are resolved correctly.
+  // Copy node_modules from the user's project instead of symlinking.
+  // Turbopack doesn't support symlinks to node_modules that point outside
+  // the project root, so we copy the entire node_modules directory.
   const userNodeModules = path.join(projectRoot, "node_modules");
   const nodeModulesDest = path.join(tempDir, "node_modules");
   if (await pathExists(userNodeModules)) {
-    const linkType = process.platform === "win32" ? "junction" : "dir";
-    await fs.symlink(userNodeModules, nodeModulesDest, linkType);
+    process.stdout.write(`${chalk.cyan("Copying dependencies")} (this may take a moment)...\n`);
+    await fs.cp(userNodeModules, nodeModulesDest, { recursive: true, force: true });
   }
 
   return tempDir;
