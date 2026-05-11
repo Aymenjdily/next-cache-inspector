@@ -1,6 +1,6 @@
 {
   "name": "next-cache-inspector",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "description": "Inspect and analyze Next.js App Router caching strategy",
   "main": "dist/cli.mjs",
   "bin": {
