@@ -9,13 +9,14 @@
   "exports": {
     ".": "./dist/cli.mjs",
     "./devtools": {
-      "types": "./dist/devtools.d.ts",
+      "types": "./src/devtools/index.d.ts",
       "import": "./dist/devtools.mjs",
       "default": "./dist/devtools.mjs"
     }
   },
   "files": [
     "dist",
+    "dist/devtools.d.ts",
     "src",
     "public",
     "next.config.ts",
