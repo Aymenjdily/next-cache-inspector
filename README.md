@@ -16,12 +16,44 @@ npx next-cache-inspector --dir ./your-app
 
 ## Usage
 
-### Standalone dashboard
+### Option 1: Embedded DevTools (Recommended)
+
+Import the devtools component directly into your Next.js app. No separate server needed!
+
+```bash
+npm install next-cache-inspector
+```
+
+Add to your root layout:
+
+```tsx
+// app/layout.tsx
+import { CacheInspector } from "next-cache-inspector/devtools";
+
+export default function RootLayout({ children }) {
+  return (
+    <html>
+      <body>
+        {children}
+        {process.env.NODE_ENV === "development" && <CacheInspector />}
+      </body>
+    </html>
+  );
+}
+```
+
+This renders a floating button in development. Click it to see:
+- Route count and types
+- Cache tags
+- Anti-patterns and issues
+- Scan metadata
+
+### Option 2: Standalone Dashboard
 
 Start the inspector dashboard for any Next.js project:
 
 ```bash
-next-cache-inspector --dir ./my-next-app
+npx next-cache-inspector --dir ./my-next-app
 ```
 
 The dashboard opens at `http://localhost:4242`.
@@ -33,17 +65,6 @@ The dashboard opens at `http://localhost:4242`.
 | `-d, --dir <dir>` | Target Next.js project root | `process.cwd()` |
 | `-p, --port <port>` | Port for the dashboard server | `4242` |
 | `-o, --output <output>` | Output directory for cache-graph.json | `.next/cache-inspector/` |
-| `-e, --embed` | Print embed instructions instead of starting a server | `false` |
-
-### Embedded mode
-
-Mount the inspector inside your own Next.js app:
-
-```bash
-next-cache-inspector --dir ./my-next-app --embed
-```
-
-Follow the printed instructions to wire the dashboard into your app.
 
 ## What it does
 

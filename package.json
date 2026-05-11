@@ -6,6 +6,13 @@
   "bin": {
     "next-cache-inspector": "dist/cli.mjs"
   },
+  "exports": {
+    ".": "./dist/cli.mjs",
+    "./devtools": {
+      "import": "./dist/devtools.mjs",
+      "types": "./dist/devtools.d.ts"
+    }
+  },
   "files": [
     "dist",
     "src",
