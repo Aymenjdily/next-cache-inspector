@@ -27,6 +27,7 @@ interface CliOptions {
   port: number;
   embed: boolean;
   output: string;
+  clean?: boolean;
 }
 
 function getInspectorRoot(): string {
@@ -75,7 +76,8 @@ async function parseCliOptions(): Promise<CliOptions> {
     .option("-d, --dir <dir>", "Target Next.js project root", process.cwd())
     .option("-p, --port <port>", "Port for the standalone dashboard server", "4242")
     .option("-e, --embed", "Print embed instructions instead of starting a server", false)
-    .option("-o, --output <output>", "Output directory for cache-graph.json", ".next/cache-inspector/");
+    .option("-o, --output <output>", "Output directory for cache-graph.json", ".next/cache-inspector/")
+    .option("--clean", "Remove temp directories and cache files created by the inspector", false);
 
   command.parse(process.argv);
 
@@ -84,7 +86,12 @@ async function parseCliOptions(): Promise<CliOptions> {
     port: string;
     embed: boolean;
     output: string;
+    clean: boolean;
   }>();
+
+  if (parsed.clean) {
+    return { dir: parsed.dir, port: 0, embed: false, output: parsed.output, clean: true } as CliOptions;
+  }
 
   return cliSchema.parse({
     dir: parsed.dir,
@@ -233,9 +240,62 @@ async function startStandaloneServer(port: number, graphPath: string, projectRoo
   });
 }
 
+async function cleanInspectorFiles(projectRoot: string): Promise<void> {
+  const parentDir = path.dirname(projectRoot);
+  
+  // Find and remove temp dashboard directories
+  try {
+    const entries = await fs.readdir(parentDir);
+    const tempDirs = entries.filter(entry => entry.startsWith(".next-cache-inspector-"));
+    
+    for (const dir of tempDirs) {
+      const fullPath = path.join(parentDir, dir);
+      await fs.rm(fullPath, { recursive: true, force: true });
+      process.stdout.write(`${chalk.green("Removed")} ${chalk.white(fullPath)}\n`);
+    }
+    
+    if (tempDirs.length === 0) {
+      process.stdout.write(`${chalk.gray("No temp directories found")}\n`);
+    }
+  } catch {
+    // Directory might not exist or be accessible
+  }
+  
+  // Remove cache-inspector directory from .next
+  try {
+    const cacheDir = path.join(projectRoot, ".next", "cache-inspector");
+    if (await pathExists(cacheDir)) {
+      await fs.rm(cacheDir, { recursive: true, force: true });
+      process.stdout.write(`${chalk.green("Removed")} ${chalk.white(cacheDir)}\n`);
+    }
+  } catch {
+    // Directory might not exist
+  }
+  
+  // Remove cache-graph.json if it exists in the output location
+  try {
+    const outputPath = path.join(projectRoot, ".next", "cache-inspector", "cache-graph.json");
+    if (await pathExists(outputPath)) {
+      await fs.unlink(outputPath);
+      process.stdout.write(`${chalk.green("Removed")} ${chalk.white(outputPath)}\n`);
+    }
+  } catch {
+    // File might not exist
+  }
+}
+
 async function run(): Promise<number> {
   try {
     const options = await parseCliOptions();
+    
+    if (options.clean) {
+      const projectRoot = path.resolve(options.dir);
+      process.stdout.write(`${chalk.cyan("Cleaning inspector files")} ${chalk.white(projectRoot)}\n\n`);
+      await cleanInspectorFiles(projectRoot);
+      process.stdout.write(`\n${chalk.green("Cleanup complete")}\n`);
+      return 0;
+    }
+    
     const { projectRoot, appDir } = await resolveTargetPaths(options.dir);
 
     process.stdout.write(`${chalk.cyan("Scanning")} ${chalk.white(appDir)}\n`);

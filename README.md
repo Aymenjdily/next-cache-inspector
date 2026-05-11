@@ -65,6 +65,7 @@ The dashboard opens at `http://localhost:4242`.
 | `-d, --dir <dir>` | Target Next.js project root | `process.cwd()` |
 | `-p, --port <port>` | Port for the dashboard server | `4242` |
 | `-o, --output <output>` | Output directory for cache-graph.json | `.next/cache-inspector/` |
+| `--clean` | Remove temp directories and cache files | `false` |
 
 ## What it does
 
@@ -73,6 +74,18 @@ The dashboard opens at `http://localhost:4242`.
 3. **Maps** fetch calls and their cache tags
 4. **Detects** anti-patterns and caching inconsistencies
 5. **Visualizes** everything in an interactive dashboard
+
+### Cleaning up
+
+Remove temp directories and cache files created by the inspector:
+
+```bash
+next-cache-inspector --dir ./my-app --clean
+```
+
+This removes:
+- Temp dashboard directories (`.next-cache-inspector-*`)
+- Cache files in `.next/cache-inspector/`
 
 ## Requirements
 
