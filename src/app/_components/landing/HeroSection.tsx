@@ -298,45 +298,89 @@ function TabPreview({ activeTab }: { activeTab: string }): React.JSX.Element {
   );
 }
 
-/* Full-width grid background on dark */
-function GridBackground(): React.JSX.Element {
-  const cellClass = "bg-[#111] border border-[#333] rounded-sm";
+/* Animated mesh gradient background */
+function MeshBackground(): React.JSX.Element {
+  return (
+    <div className="absolute inset-0 overflow-hidden bg-[#0a0a0a]">
+      {/* Base gradient */}
+      <div 
+        className="absolute inset-0 opacity-40"
+        style={{
+          background: 'radial-gradient(ellipse 80% 50% at 50% -20%, rgba(255, 192, 0, 0.15), transparent)',
+        }}
+      />
+      
+      {/* Animated floating orbs */}
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#FFC000]/5 rounded-full blur-3xl animate-pulse" />
+      <div className="absolute top-1/3 right-1/4 w-72 h-72 bg-amber-500/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+      <div className="absolute bottom-1/4 left-1/3 w-80 h-80 bg-yellow-500/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
+      
+      {/* Subtle grid pattern */}
+      <div 
+        className="absolute inset-0 opacity-[0.03]"
+        style={{
+          backgroundImage: `
+            linear-gradient(rgba(255, 192, 0, 0.5) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 192, 0, 0.5) 1px, transparent 1px)
+          `,
+          backgroundSize: '60px 60px',
+        }}
+      />
+      
+      {/* Diagonal lines */}
+      <div 
+        className="absolute inset-0 opacity-[0.02]"
+        style={{
+          backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(255, 192, 0, 0.3) 35px, rgba(255, 192, 0, 0.3) 36px)',
+        }}
+      />
+      
+      {/* Bottom fade to content */}
+      <div 
+        className="absolute bottom-0 left-0 right-0 h-32"
+        style={{
+          background: 'linear-gradient(to bottom, transparent, #0a0a0a)',
+        }}
+      />
+      
+      {/* Noise texture overlay */}
+      <div 
+        className="absolute inset-0 opacity-[0.015]"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+        }}
+      />
+    </div>
+  );
+}
+
+/* Animated particles */
+function FloatingParticles(): React.JSX.Element {
+  const particles = Array.from({ length: 20 }, (_, i) => ({
+    id: i,
+    size: Math.random() * 4 + 2,
+    left: Math.random() * 100,
+    top: Math.random() * 100,
+    duration: Math.random() * 20 + 10,
+    delay: Math.random() * 5,
+  }));
 
   return (
-    <div className="absolute inset-0 flex flex-col bg-[#111]">
-      {/* Top row */}
-      <div className="grid grid-cols-10">
-        {Array.from({ length: 10 }).map((_, i) => (
-          <div key={i} className={`aspect-square ${cellClass}`} />
-        ))}
-      </div>
-
-      {/* Middle - side frames + center gap */}
-      <div className="grid flex-1 grid-cols-10">
-        {/* Left frame */}
-        <div className="flex flex-col">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className={`flex-1 ${cellClass}`} />
-          ))}
-        </div>
-
-        {/* Center gap (content area) */}
-        <div className="col-span-8" />
-
-        {/* Right frame */}
-        <div className="flex flex-col">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className={`flex-1 ${cellClass}`} />
-          ))}
-        </div>
-      </div>
-
-      {/* Bottom row */}
-      <div className="grid grid-cols-10">
-        {Array.from({ length: 10 }).map((_, i) => (
-          <div key={i} className={`aspect-square ${cellClass}`} />
-        ))}
-      </div>
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {particles.map((p) => (
+        <div
+          key={p.id}
+          className="absolute rounded-full bg-[#FFC000]/20 animate-float"
+          style={{
+            width: p.size,
+            height: p.size,
+            left: `${p.left}%`,
+            top: `${p.top}%`,
+            animationDuration: `${p.duration}s`,
+            animationDelay: `${p.delay}s`,
+          }}
+        />
+      ))}
     </div>
   );
 }
@@ -345,8 +389,9 @@ export default function HeroSection(): React.JSX.Element {
   const [activeTab, setActiveTab] = useState("topology");
 
   return (
-    <section className="relative overflow-hidden bg-[#111] pt-24">
-      <GridBackground />
+    <section className="relative overflow-hidden bg-[#0a0a0a] pt-24">
+      <MeshBackground />
+      <FloatingParticles />
 
       <Navbar />
 
