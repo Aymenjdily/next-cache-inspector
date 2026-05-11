@@ -174,10 +174,10 @@ export default function Navbar(): React.JSX.Element {
 
   return (
     <header 
-      className={`fixed left-0 right-0 top-0 z-50 transition-all duration-300 ${
+      className={`fixed left-0 right-0 top-0 z-50 border-b transition-all duration-300 ${
         scrolled 
-          ? "border-b border-[#333]/50 bg-[#0a0a0a]/80 backdrop-blur-md shadow-sm shadow-black/20" 
-          : "border-b border-transparent bg-transparent"
+          ? "border-[#333]/50 bg-[#0a0a0a]/80 backdrop-blur-md shadow-sm shadow-black/20" 
+          : "border-[#333]/20 bg-transparent"
       }`}
     >
       <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4 sm:px-6 lg:px-8">
