@@ -103,195 +103,291 @@ const tabs = [
   { id: "scan", label: "Static Analysis", icon: <ScanLine className="size-4" /> },
 ];
 
-function BrowserChrome({ title, children }: { title: string; children: React.ReactNode }): React.JSX.Element {
+/* Preview mock sidebar items */
+const sidebarItems = [
+  { icon: "◆", label: "Dashboard", active: false },
+  { icon: "◎", label: "Topology", active: true },
+  { icon: "▣", label: "Tags", active: false },
+  { icon: "▼", label: "Fetches", active: false },
+  { icon: "◈", label: "Flow", active: false },
+  { icon: "◊", label: "Rules", active: false },
+];
+
+function MockSidebar(): React.JSX.Element {
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-t-lg border border-[#333] border-b-0 bg-[#1a1a1a] shadow-2xl">
-      <div className="flex h-7 shrink-0 items-center border-b border-[#333] bg-[#252525] px-3">
-        <div className="flex items-center gap-1.5">
-          <div className="size-2.5 rounded-full bg-red-400" />
-          <div className="size-2.5 rounded-full bg-yellow-400" />
-          <div className="size-2.5 rounded-full bg-green-400" />
-        </div>
-        <span className="flex-1 text-center text-[10px] font-medium text-gray-400">
-          {title}
-        </span>
-        <div className="w-[42px]" />
+    <div className="hidden w-[140px] flex-col border-r border-[#333] bg-[#111] p-2 md:flex">
+      <div className="mb-3 flex items-center gap-2 px-2 py-1.5">
+        <div className="size-6 rounded bg-[#FFC000]" />
+        <div className="h-2 w-16 rounded bg-gray-700" />
       </div>
-      <div className="flex flex-1 overflow-hidden">{children}</div>
+      {sidebarItems.map((item, i) => (
+        <div
+          key={i}
+          className={`flex items-center gap-2 rounded px-2 py-1.5 text-[10px] ${
+            item.active
+              ? "border-l-2 border-[#FFC000] bg-[#1a1a1a] text-white"
+              : "text-gray-500"
+          }`}
+        >
+          <span>{item.icon}</span>
+          <span>{item.label}</span>
+        </div>
+      ))}
+      <div className="mt-auto space-y-1 px-2 py-2">
+        <div className="h-1.5 w-full rounded bg-gray-800" />
+        <div className="h-1.5 w-2/3 rounded bg-gray-800" />
+      </div>
     </div>
   );
 }
 
-function TopologyView(): React.JSX.Element {
+function PreviewWindow({ title, children }: { title: string; children: React.ReactNode }): React.JSX.Element {
   return (
-    <BrowserChrome title="next-cache-inspector — Topology">
-      <div className="hidden w-16 flex-col gap-3 border-r border-[#333] bg-[#1a1a1a] p-3 md:flex lg:w-[154px]">
-        <div className="mx-auto h-6 w-6 rounded bg-gray-700 lg:mx-0 lg:h-5 lg:w-full" />
-        <div className="mx-auto h-6 w-6 rounded bg-[#FFC000]/20 lg:mx-0 lg:h-5 lg:w-full" />
-        <div className="mx-auto h-6 w-6 rounded bg-gray-700 lg:mx-0 lg:h-5 lg:w-full" />
-        <div className="mx-auto h-6 w-6 rounded bg-gray-700 lg:mx-0 lg:h-5 lg:w-full" />
-        <div className="mx-auto h-6 w-6 rounded bg-gray-700 lg:mx-0 lg:h-5 lg:w-full" />
+    <div className="flex h-full flex-col overflow-hidden rounded-xl border border-[#333] bg-[#111] shadow-2xl shadow-black/50">
+      {/* Browser Chrome */}
+      <div className="flex h-8 shrink-0 items-center border-b border-[#333] bg-[#161616] px-3">
+        <div className="flex items-center gap-1.5">
+          <div className="size-2.5 rounded-full bg-[#ff5f57]" />
+          <div className="size-2.5 rounded-full bg-[#febc2e]" />
+          <div className="size-2.5 rounded-full bg-[#28c840]" />
+        </div>
+        <div className="mx-auto flex max-w-[200px] flex-1 items-center justify-center rounded-md bg-[#0a0a0a] px-3 py-0.5">
+          <span className="text-[10px] text-gray-500">{title}</span>
+        </div>
+        <div className="w-[42px]" />
       </div>
-      <div className="flex-1 bg-[#1a1a1a] p-4">
-        <svg viewBox="0 0 320 180" className="w-full" aria-hidden="true">
-          <rect x="20" y="70" width="56" height="32" rx="4" fill="#2a2a2a" stroke="#444" strokeWidth="1" />
-          <text x="48" y="90" textAnchor="middle" fill="#888" fontSize="10" fontFamily="monospace">/</text>
-          <rect x="130" y="40" width="72" height="32" rx="4" fill="#2a2a2a" stroke="#444" strokeWidth="1" />
-          <text x="166" y="60" textAnchor="middle" fill="#888" fontSize="10" fontFamily="monospace">/blog</text>
-          <rect x="130" y="100" width="72" height="32" rx="4" fill="#2a2a2a" stroke="#444" strokeWidth="1" />
-          <text x="166" y="120" textAnchor="middle" fill="#888" fontSize="10" fontFamily="monospace">/shop</text>
-          <rect x="250" y="25" width="56" height="32" rx="4" fill="#2a2a2a" stroke="#444" strokeWidth="1" />
-          <text x="278" y="45" textAnchor="middle" fill="#888" fontSize="10" fontFamily="monospace">/[id]</text>
-          <rect x="250" y="70" width="56" height="32" rx="4" fill="#2a2a2a" stroke="#444" strokeWidth="1" />
-          <text x="278" y="90" textAnchor="middle" fill="#888" fontSize="10" fontFamily="monospace">/cart</text>
-          <rect x="250" y="115" width="56" height="32" rx="4" fill="#2a2a2a" stroke="#444" strokeWidth="1" />
-          <text x="278" y="135" textAnchor="middle" fill="#888" fontSize="10" fontFamily="monospace">/[id]</text>
-          <line x1="76" y1="86" x2="130" y2="56" stroke="#555" strokeWidth="1.5" />
-          <line x1="76" y1="86" x2="130" y2="116" stroke="#555" strokeWidth="1.5" />
-          <line x1="202" y1="56" x2="250" y2="41" stroke="#555" strokeWidth="1.5" />
-          <line x1="202" y1="116" x2="250" y2="131" stroke="#555" strokeWidth="1.5" />
-          <rect x="100" y="150" width="120" height="20" rx="4" fill="#332a00" stroke="#FFC000" strokeWidth="1" opacity="0.7" />
-          <text x="160" y="163" textAnchor="middle" fill="#FFC000" fontSize="9" fontFamily="monospace">tag: product-list</text>
+      
+      {/* App Layout */}
+      <div className="flex flex-1 overflow-hidden">
+        <MockSidebar />
+        <div className="flex-1 overflow-auto bg-[#111]">
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TopologyPreview(): React.JSX.Element {
+  return (
+    <PreviewWindow title="localhost:4242/topology">
+      <div className="p-4">
+        <div className="mb-4 flex items-center justify-between">
+          <div className="h-3 w-20 rounded bg-gray-800" />
+          <div className="flex gap-2">
+            <div className="h-6 w-6 rounded bg-[#1a1a1a]" />
+            <div className="h-6 w-6 rounded bg-[#1a1a1a]" />
+          </div>
+        </div>
+        <svg viewBox="0 0 400 220" className="w-full" aria-hidden="true">
+          {/* Root */}
+          <rect x="170" y="10" width="60" height="28" rx="6" fill="#1a1a1a" stroke="#333" strokeWidth="1" />
+          <text x="200" y="28" textAnchor="middle" fill="#aaa" fontSize="11" fontFamily="monospace">layout</text>
+          
+          {/* Level 1 */}
+          <rect x="60" y="80" width="70" height="28" rx="6" fill="#1a1a1a" stroke="#333" strokeWidth="1" />
+          <text x="95" y="98" textAnchor="middle" fill="#aaa" fontSize="10" fontFamily="monospace">/ (home)</text>
+          
+          <rect x="165" y="80" width="70" height="28" rx="6" fill="#1a1a1a" stroke="#FFC000" strokeWidth="1.5" />
+          <text x="200" y="98" textAnchor="middle" fill="#FFC000" fontSize="10" fontFamily="monospace">/blog</text>
+          
+          <rect x="270" y="80" width="70" height="28" rx="6" fill="#1a1a1a" stroke="#333" strokeWidth="1" />
+          <text x="305" y="98" textAnchor="middle" fill="#aaa" fontSize="10" fontFamily="monospace">/shop</text>
+          
+          {/* Level 2 */}
+          <rect x="50" y="150" width="60" height="24" rx="6" fill="#0f2818" stroke="#10b981" strokeWidth="1" />
+          <text x="80" y="166" textAnchor="middle" fill="#10b981" fontSize="9">static</text>
+          
+          <rect x="150" y="150" width="60" height="24" rx="6" fill="#2a1a00" stroke="#FFC000" strokeWidth="1" />
+          <text x="180" y="166" textAnchor="middle" fill="#FFC000" fontSize="9">ISR 60s</text>
+          
+          <rect x="260" y="150" width="60" height="24" rx="6" fill="#1a0a2a" stroke="#a855f7" strokeWidth="1" />
+          <text x="290" y="166" textAnchor="middle" fill="#a855f7" fontSize="9">dynamic</text>
+          
+          {/* Connections */}
+          <line x1="200" y1="38" x2="95" y2="80" stroke="#444" strokeWidth="1" />
+          <line x1="200" y1="38" x2="200" y2="80" stroke="#444" strokeWidth="1.5" />
+          <line x1="200" y1="38" x2="305" y2="80" stroke="#444" strokeWidth="1" />
+          
+          <line x1="95" y1="108" x2="80" y2="150" stroke="#333" strokeWidth="1" strokeDasharray="3,3" />
+          <line x1="200" y1="108" x2="180" y2="150" stroke="#FFC000" strokeWidth="1" strokeDasharray="3,3" />
+          <line x1="305" y1="108" x2="290" y2="150" stroke="#333" strokeWidth="1" strokeDasharray="3,3" />
+          
+          {/* Tag badge */}
+          <rect x="140" y="190" width="120" height="20" rx="10" fill="#1a1500" stroke="#FFC000" strokeWidth="1" opacity="0.8" />
+          <text x="200" y="203" textAnchor="middle" fill="#FFC000" fontSize="9">tag: product-list</text>
         </svg>
       </div>
-    </BrowserChrome>
+    </PreviewWindow>
   );
 }
 
-function FetchesView(): React.JSX.Element {
-  const rows = [
-    { method: "GET", path: "/api/products", status: "200", cache: "force-cache" },
-    { method: "POST", path: "/api/cart", status: "200", cache: "no-store" },
-    { method: "GET", path: "/api/user", status: "200", cache: "revalidate" },
-    { method: "GET", path: "/api/search", status: "200", cache: "force-cache" },
-  ];
+function FetchesPreview(): React.JSX.Element {
   return (
-    <BrowserChrome title="next-cache-inspector — Fetches">
-      <div className="flex-1 overflow-auto bg-[#1a1a1a] p-4">
-        <table className="w-full text-left text-xs">
-          <thead>
-            <tr className="border-b border-[#333] text-gray-400">
-              <th className="pb-2 font-medium">Method</th>
-              <th className="pb-2 font-medium">Path</th>
-              <th className="pb-2 font-medium">Cache</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((r, i) => (
-              <tr key={i} className="border-b border-[#333]">
-                <td className="py-2 font-mono text-blue-400">{r.method}</td>
-                <td className="py-2 font-mono text-gray-300">{r.path}</td>
-                <td className="py-2">
-                  <span className="rounded-full bg-gray-800 px-2 py-0.5 text-[10px] font-medium text-gray-400">
-                    {r.cache}
-                  </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </BrowserChrome>
-  );
-}
-
-function RulesView(): React.JSX.Element {
-  const rules = [
-    { label: "Fetch has cache strategy", pass: true },
-    { label: "Revalidate time is set", pass: true },
-    { label: "Tags are configured", pass: false },
-    { label: "No conflicting headers", pass: true },
-    { label: "Static paths detected", pass: true },
-  ];
-  return (
-    <BrowserChrome title="next-cache-inspector — Rules">
-      <div className="flex-1 overflow-auto bg-[#1a1a1a] p-4">
+    <PreviewWindow title="localhost:4242/fetches">
+      <div className="p-4">
+        <div className="mb-4 h-8 w-full rounded-lg border border-[#333] bg-[#0a0a0a] px-3 py-2">
+          <div className="h-3 w-3 rounded-full bg-gray-700" />
+        </div>
         <div className="space-y-2">
-          {rules.map((r, i) => (
-            <div
-              key={i}
-              className="flex items-center justify-between rounded-lg border border-[#333] bg-[#222] px-3 py-2"
-            >
-              <span className="text-xs text-gray-300">{r.label}</span>
-              {r.pass ? (
-                <CheckCircle2 className="size-4 text-green-400" />
-              ) : (
-                <XCircle className="size-4 text-red-400" />
-              )}
+          {[
+            { method: "GET", path: "/api/products", cache: "force-cache", color: "#10b981" },
+            { method: "POST", path: "/api/cart", cache: "no-store", color: "#ef4444" },
+            { method: "GET", path: "/api/user", cache: "revalidate 300", color: "#f59e0b" },
+            { method: "GET", path: "/api/search", cache: "force-cache", color: "#10b981" },
+          ].map((r, i) => (
+            <div key={i} className="flex items-center gap-3 rounded-lg border border-[#333] bg-[#1a1a1a] px-3 py-2.5">
+              <span className="w-10 text-[10px] font-mono" style={{ color: r.method === "GET" ? "#3b82f6" : "#a855f7" }}>
+                {r.method}
+              </span>
+              <span className="flex-1 text-[11px] text-gray-300 font-mono">{r.path}</span>
+              <span 
+                className="rounded-md px-2 py-0.5 text-[9px] font-medium"
+                style={{ backgroundColor: `${r.color}20`, color: r.color }}
+              >
+                {r.cache}
+              </span>
             </div>
           ))}
         </div>
       </div>
-    </BrowserChrome>
+    </PreviewWindow>
   );
 }
 
-function TagsView(): React.JSX.Element {
-  const tags = [
-    "product-list", "user-profile", "cart", "blog-posts",
-    "search-results", "homepage", "api-config", "session",
-  ];
+function RulesPreview(): React.JSX.Element {
   return (
-    <BrowserChrome title="next-cache-inspector — Tags">
-      <div className="flex-1 overflow-auto bg-[#1a1a1a] p-4">
-        <div className="flex flex-wrap gap-2">
-          {tags.map((t) => (
+    <PreviewWindow title="localhost:4242/rules">
+      <div className="p-4">
+        <div className="mb-3 flex items-center gap-2">
+          <div className="h-5 w-16 rounded bg-[#1a1a1a] border border-[#333]" />
+          <div className="h-5 w-16 rounded bg-[#1a1a1a] border border-[#FFC000]" />
+        </div>
+        <div className="space-y-2">
+          {[
+            { label: "Static route with ISR config", pass: true },
+            { label: "Fetch missing cache strategy", pass: false },
+            { label: "Revalidate time is optimal", pass: true },
+            { label: "Tags properly configured", pass: true },
+            { label: "No cache conflicts detected", pass: true },
+          ].map((r, i) => (
+            <div
+              key={i}
+              className={`flex items-center gap-3 rounded-lg border px-3 py-2.5 ${
+                r.pass
+                  ? "border-[#333] bg-[#1a1a1a]"
+                  : "border-red-500/30 bg-red-500/5"
+              }`}
+            >
+              {r.pass ? (
+                <CheckCircle2 className="size-4 shrink-0 text-emerald-500" />
+              ) : (
+                <XCircle className="size-4 shrink-0 text-red-500" />
+              )}
+              <span className="flex-1 text-[11px] text-gray-300">{r.label}</span>
+              <span className={`text-[9px] px-1.5 py-0.5 rounded ${r.pass ? "text-emerald-500 bg-emerald-500/10" : "text-red-500 bg-red-500/10"}`}>
+                {r.pass ? "PASS" : "FAIL"}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </PreviewWindow>
+  );
+}
+
+function TagsPreview(): React.JSX.Element {
+  return (
+    <PreviewWindow title="localhost:4242/tags">
+      <div className="p-4">
+        <div className="mb-4 grid grid-cols-4 gap-2">
+          {[
+            { label: "Routes", value: "14", color: "#10b981" },
+            { label: "Tags", value: "8", color: "#3b82f6" },
+            { label: "Fetches", value: "6", color: "#f59e0b" },
+            { label: "Issues", value: "1", color: "#ef4444" },
+          ].map((stat) => (
+            <div key={stat.label} className="rounded-lg border border-[#333] bg-[#1a1a1a] p-2.5">
+              <div className="text-sm font-semibold" style={{ color: stat.color }}>{stat.value}</div>
+              <div className="text-[9px] text-gray-500">{stat.label}</div>
+            </div>
+          ))}
+        </div>
+        <div className="mb-4 flex flex-wrap gap-1.5">
+          {[
+            "product-list", "user-profile", "cart", "blog-posts",
+            "search-results", "homepage", "api-config", "session",
+          ].map((t) => (
             <span
               key={t}
-              className="rounded-full border border-[#333] bg-[#222] px-3 py-1 text-xs font-medium text-gray-300"
+              className="rounded-full border border-[#333] bg-[#1a1a1a] px-2.5 py-1 text-[10px] text-gray-300 hover:border-[#FFC000] hover:text-[#FFC000] transition-colors"
             >
               {t}
             </span>
           ))}
         </div>
-        <div className="mt-4 rounded-lg border border-[#333] bg-[#222] p-3">
-          <div className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Revalidation Log</div>
-          <div className="mt-2 space-y-1">
-            <div className="text-[10px] text-gray-400 font-mono">revalidateTag(&quot;product-list&quot;) — 2s ago</div>
-            <div className="text-[10px] text-gray-400 font-mono">revalidatePath(&quot;/blog&quot;) — 5m ago</div>
+        <div className="rounded-lg border border-[#333] bg-[#1a1a1a] p-3">
+          <div className="mb-2 text-[9px] font-medium uppercase tracking-wider text-gray-500">Recent Revalidations</div>
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between text-[10px]">
+              <span className="font-mono text-[#FFC000]">revalidateTag(&quot;product-list&quot;)</span>
+              <span className="text-gray-600">2s ago</span>
+            </div>
+            <div className="flex items-center justify-between text-[10px]">
+              <span className="font-mono text-gray-400">revalidatePath(&quot;/blog&quot;)</span>
+              <span className="text-gray-600">5m ago</span>
+            </div>
           </div>
         </div>
       </div>
-    </BrowserChrome>
+    </PreviewWindow>
   );
 }
 
-function ScanView(): React.JSX.Element {
+function ScanPreview(): React.JSX.Element {
   return (
-    <BrowserChrome title="next-cache-inspector — Scan">
-      <div className="flex-1 overflow-auto bg-[#0f0f0f] p-4">
-        <div className="font-mono text-[10px] leading-relaxed text-gray-300">
-          <span className="text-green-400">$</span> next-cache-inspector scan<br />
-          <span className="text-gray-500">→ Scanning src/app...</span><br />
-          <span className="text-gray-500">→ Found 14 route segments</span><br />
-          <span className="text-gray-500">→ Found 8 fetch calls</span><br />
-          <span className="text-green-400">✓</span> <span className="text-gray-300">/page.tsx</span> <span className="text-yellow-400">static</span><br />
-          <span className="text-green-400">✓</span> <span className="text-gray-300">/blog/page.tsx</span> <span className="text-yellow-400">ISR 60s</span><br />
-          <span className="text-yellow-400">⚠</span> <span className="text-gray-300">/shop/page.tsx</span> <span className="text-red-400">no cache</span><br />
-          <span className="text-green-400">✓</span> <span className="text-gray-300">/api/products/route.ts</span> <span className="text-yellow-400">force-cache</span><br />
-          <span className="text-gray-500">→ Report generated in 1.2s</span><br />
+    <PreviewWindow title="Terminal">
+      <div className="flex-1 bg-[#0a0a0a] p-4 font-mono">
+        <div className="space-y-1 text-[10px] leading-relaxed">
+          <div className="flex items-center gap-2">
+            <span className="text-green-500">➜</span>
+            <span className="text-blue-400">~</span>
+            <span className="text-gray-500">next-cache-inspector --dir .</span>
+          </div>
+          <div className="mt-2 space-y-0.5 text-gray-400">
+            <div>Scanning <span className="text-white">src/app</span>...</div>
+            <div>Found <span className="text-[#FFC000]">14</span> route segments</div>
+            <div>Found <span className="text-[#FFC000]">8</span> fetch calls</div>
+            <div>Found <span className="text-[#FFC000]">3</span> cache tags</div>
+          </div>
+          <div className="mt-2 space-y-0.5">
+            <div><span className="text-emerald-500">✓</span> <span className="text-gray-300">/page.tsx</span> <span className="rounded bg-emerald-500/10 px-1 text-[9px] text-emerald-400">static</span></div>
+            <div><span className="text-emerald-500">✓</span> <span className="text-gray-300">/blog/page.tsx</span> <span className="rounded bg-amber-500/10 px-1 text-[9px] text-amber-400">ISR 60s</span></div>
+            <div><span className="text-yellow-500">⚠</span> <span className="text-gray-300">/shop/page.tsx</span> <span className="rounded bg-red-500/10 px-1 text-[9px] text-red-400">no cache</span></div>
+            <div><span className="text-emerald-500">✓</span> <span className="text-gray-300">/api/products/route.ts</span> <span className="rounded bg-emerald-500/10 px-1 text-[9px] text-emerald-400">force-cache</span></div>
+          </div>
+          <div className="mt-2 text-gray-500">Report generated in <span className="text-[#FFC000]">1.2s</span></div>
+          <div className="mt-1 animate-pulse text-gray-600">_</div>
         </div>
       </div>
-    </BrowserChrome>
+    </PreviewWindow>
   );
 }
 
 function TabPreview({ activeTab }: { activeTab: string }): React.JSX.Element {
   const views: Record<string, React.JSX.Element> = {
-    topology: <TopologyView />,
-    fetches: <FetchesView />,
-    rules: <RulesView />,
-    tags: <TagsView />,
-    scan: <ScanView />,
+    topology: <TopologyPreview />,
+    fetches: <FetchesPreview />,
+    rules: <RulesPreview />,
+    tags: <TagsPreview />,
+    scan: <ScanPreview />,
   };
 
   return (
-    <div className="relative mx-auto w-full max-w-5xl">
-      <div className="relative overflow-hidden rounded-sm bg-[#1a1a1a]">
-        <div className="relative px-3 pb-1 pt-8 sm:px-5 md:px-7">
-          <div className="relative">
-            {views[activeTab]}
-          </div>
+    <div className="relative mx-auto w-full max-w-4xl">
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-b from-[#FFC000]/5 to-transparent p-1">
+        <div className="relative rounded-xl bg-[#0a0a0a] p-2 shadow-2xl">
+          {views[activeTab]}
         </div>
       </div>
     </div>
