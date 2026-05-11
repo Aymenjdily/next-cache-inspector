@@ -44,3 +44,103 @@ body {
   scrollbar-width: thin;
   scrollbar-color: #27272a transparent;
 }
+
+/* Promptwatch-style dither effect */
+:root {
+  --dither-cell-sm: 8px;
+  --dither-cell-lg: 16px;
+  --dither-image-url: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAu0lEQVQ4T6WSMQqFMBBEE2wDXiVgG8gtglilCuIpcoogVqlEPIVgK3gVIa2Qzw9YbIpttlqGgbcMM5wxlr33LMbI/nccx3I/PQwD0LXPj+OgAaSUBWCtLZ+2bSv308uyAF37/HkeGkAIASL0fQ8yT9MEdO3z67poAKUUiDDPM8i87zvQtc/f96UBmqZBa1zXFd9BzpkE+AFp94/4eKx9+AAAAABJRU5ErJggg==);
+}
+
+.dither {
+  --dither-gray: 1;
+  --dither-contrast: 120;
+  --dither-bright: 1;
+  --dither-blur: 0px;
+  --dither-cell: var(--dither-cell-lg);
+  --dither-opacity: 1;
+  --dither-image: var(--dither-image-url);
+  z-index: 0;
+  isolation: isolate;
+  filter: grayscale(var(--dither-gray)) brightness(var(--dither-bright)) blur(var(--dither-blur)) contrast(var(--dither-contrast));
+  background: #000;
+  position: relative;
+  overflow: hidden;
+}
+
+.dither::after {
+  z-index: 1;
+  pointer-events: none;
+  content: "";
+  image-rendering: pixelated;
+  background-image: var(--dither-image);
+  background-position: 0 0;
+  background-repeat: repeat;
+  background-size: var(--dither-cell) var(--dither-cell);
+  mix-blend-mode: screen;
+  opacity: var(--dither-opacity);
+  position: absolute;
+  inset: 0;
+}
+
+.dither-sm {
+  --dither-gray: 1;
+  --dither-contrast: 120;
+  --dither-bright: 1;
+  --dither-blur: 0px;
+  --dither-cell: var(--dither-cell-sm);
+  --dither-opacity: 1;
+  --dither-image: var(--dither-image-url);
+  z-index: 0;
+  isolation: isolate;
+  filter: grayscale(var(--dither-gray)) brightness(var(--dither-bright)) blur(var(--dither-blur)) contrast(var(--dither-contrast));
+  background: #000;
+  position: relative;
+  overflow: hidden;
+}
+
+.dither-sm::after {
+  z-index: 1;
+  pointer-events: none;
+  content: "";
+  image-rendering: pixelated;
+  background-image: var(--dither-image);
+  background-position: 0 0;
+  background-repeat: repeat;
+  background-size: var(--dither-cell) var(--dither-cell);
+  mix-blend-mode: screen;
+  opacity: var(--dither-opacity);
+  position: absolute;
+  inset: 0;
+}
+
+.dither-xs {
+  --dither-gray: 1;
+  --dither-contrast: 120;
+  --dither-bright: 1;
+  --dither-blur: 0px;
+  --dither-cell: 4px;
+  --dither-opacity: 1;
+  --dither-image: var(--dither-image-url);
+  z-index: 0;
+  isolation: isolate;
+  filter: grayscale(var(--dither-gray)) brightness(var(--dither-bright)) blur(var(--dither-blur)) contrast(var(--dither-contrast));
+  background: #000;
+  position: relative;
+  overflow: hidden;
+}
+
+.dither-xs::after {
+  z-index: 1;
+  pointer-events: none;
+  content: "";
+  image-rendering: pixelated;
+  background-image: var(--dither-image);
+  background-position: 0 0;
+  background-repeat: repeat;
+  background-size: var(--dither-cell) var(--dither-cell);
+  mix-blend-mode: screen;
+  opacity: var(--dither-opacity);
+  position: absolute;
+  inset: 0;
+}

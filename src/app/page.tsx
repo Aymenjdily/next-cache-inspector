@@ -7,7 +7,7 @@ import Footer from "@/app/_components/landing/Footer";
 
 export default function HomePage(): React.JSX.Element {
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-50">
+    <div className="min-h-screen bg-[#111] text-gray-100">
       <Navbar />
       <main>
         <HeroSection />

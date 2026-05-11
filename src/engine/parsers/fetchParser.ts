@@ -7,36 +7,24 @@ function getLineAndColumn(sourceFile: SourceFile, position: number): { line: num
 }
 
 function getLiteralString(node: Node | undefined): string | undefined {
-  if (!node) {
-    return undefined;
-  }
-
+  if (!node) return undefined;
   if (Node.isStringLiteral(node) || Node.isNoSubstitutionTemplateLiteral(node)) {
     return node.getLiteralText();
   }
-
   return undefined;
 }
 
 function getObjectProperty(objectNode: ObjectLiteralExpression, propertyName: string): Node | undefined {
   const property = objectNode.getProperty(propertyName);
-
-  if (!property) {
-    return undefined;
-  }
-
+  if (!property) return undefined;
   if (Node.isPropertyAssignment(property)) {
     return property.getInitializer() ?? undefined;
   }
-
   return undefined;
 }
 
 function getTagsArray(node: Node | undefined): string[] {
-  if (!node || !Node.isArrayLiteralExpression(node)) {
-    return [];
-  }
-
+  if (!node || !Node.isArrayLiteralExpression(node)) return [];
   return node
     .getElements()
     .flatMap((element: Node) => {
@@ -53,39 +41,23 @@ function getCacheValue(objectNode: ObjectLiteralExpression, nextNode: ObjectLite
   if (cacheValue === "force-cache" || cacheValue === "no-store") {
     return cacheValue;
   }
-
   return undefined;
 }
 
 function getRevalidateValue(node: Node | undefined): number | false | undefined {
-  if (!node) {
-    return undefined;
-  }
-
-  if (Node.isNumericLiteral(node)) {
-    return Number(node.getLiteralText());
-  }
-
-  if (node.getKind() === SyntaxKind.FalseKeyword) {
-    return false;
-  }
-
+  if (!node) return undefined;
+  if (Node.isNumericLiteral(node)) return Number(node.getLiteralText());
+  if (node.getKind() === SyntaxKind.FalseKeyword) return false;
   return undefined;
 }
 
 function getNextConfigNode(callExpression: CallExpression): ObjectLiteralExpression | undefined {
   const optionsArgument = callExpression.getArguments()[1];
-
-  if (!optionsArgument || !Node.isObjectLiteralExpression(optionsArgument)) {
-    return undefined;
-  }
-
+  if (!optionsArgument || !Node.isObjectLiteralExpression(optionsArgument)) return undefined;
   const nextInitializer = getObjectProperty(optionsArgument, "next");
-
   if (nextInitializer && Node.isObjectLiteralExpression(nextInitializer)) {
     return nextInitializer;
   }
-
   return undefined;
 }
 
@@ -116,12 +88,47 @@ function createFetchCall(sourceFile: SourceFile, callExpression: CallExpression)
   };
 }
 
+function createCacheCall(sourceFile: SourceFile, callExpression: CallExpression, callType: string): FetchCall {
+  const fnArgument = callExpression.getArguments()[0];
+  const optionsArgument = callExpression.getArguments()[2]; // unstable_cache(fn, key, options)
+  const location = getLineAndColumn(sourceFile, callExpression.getStart());
+
+  let url: string | undefined;
+  if (Node.isArrowFunction(fnArgument)) {
+    const body = fnArgument.getBody();
+    if (Node.isCallExpression(body) && body.getExpression().getText() === "fetch") {
+      url = getLiteralString(body.getArguments()[0]);
+    }
+  }
+
+  const configNode = Node.isObjectLiteralExpression(optionsArgument) ? optionsArgument : undefined;
+
+  return {
+    id: buildFetchId(sourceFile, callExpression),
+    sourceFile: sourceFile.getFilePath(),
+    line: location.line,
+    url: url ?? `${callType}(...)`,
+    cache: configNode ? getCacheValue(configNode, undefined) : undefined,
+    revalidate: getRevalidateValue(configNode ? getObjectProperty(configNode, "revalidate") : undefined),
+    tags: getTagsArray(configNode ? getObjectProperty(configNode, "tags") : undefined),
+  };
+}
+
 /**
- * Parses direct `fetch()` calls from a source file.
+ * Parses direct `fetch()` calls and `unstable_cache()` / `cache()` calls from a source file.
  */
 export function parseFetches(sourceFile: SourceFile): FetchCall[] {
-  return sourceFile
-    .getDescendantsOfKind(SyntaxKind.CallExpression)
-    .filter((callExpression: CallExpression) => callExpression.getExpression().getText() === "fetch")
-    .map((callExpression: CallExpression) => createFetchCall(sourceFile, callExpression));
+  const fetches: FetchCall[] = [];
+
+  for (const callExpression of sourceFile.getDescendantsOfKind(SyntaxKind.CallExpression)) {
+    const exprText = callExpression.getExpression().getText();
+
+    if (exprText === "fetch") {
+      fetches.push(createFetchCall(sourceFile, callExpression));
+    } else if (exprText === "unstable_cache" || exprText === "cache") {
+      fetches.push(createCacheCall(sourceFile, callExpression, exprText));
+    }
+  }
+
+  return fetches;
 }

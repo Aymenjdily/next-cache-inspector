@@ -35,8 +35,7 @@ const nodeTypes: NodeTypes = {
 
 function LayoutWrapEdge(props: EdgeProps): React.JSX.Element {
   const [path] = getSmoothStepPath(props);
-
-  return <BaseEdge path={path} style={{ stroke: "#71717a", strokeDasharray: "6 4" }} />;
+  return <BaseEdge path={path} style={{ stroke: "#555", strokeDasharray: "6 4" }} />;
 }
 
 const edgeTypes = {
@@ -47,13 +46,11 @@ function getRouteSourcePath(graph: CacheGraph, route: RouteNodeSchema): string {
   if (route.fetches[0]?.sourceFile) {
     return route.fetches[0].sourceFile;
   }
-
   return `${graph.meta.appDir.replace(/\\/g, "/")}/${route.id}`;
 }
 
 function createLayoutRouteNode(graph: CacheGraph, layoutId: string): RouteNodeData {
   const layoutPath = layoutId === "layout.tsx" ? "/" : `/${layoutId.replace(/\/layout\.tsx$/, "")}`;
-
   return {
     id: layoutId,
     path: layoutPath,
@@ -73,13 +70,11 @@ function createLayoutRouteNode(graph: CacheGraph, layoutId: string): RouteNodeDa
 
 function buildLayoutRecords(graph: CacheGraph): string[] {
   const layoutIds = new Set<string>();
-
   graph.routes.forEach((route) => {
     route.layouts.forEach((layoutId) => {
       layoutIds.add(layoutId);
     });
   });
-
   return [...layoutIds.values()];
 }
 
@@ -91,7 +86,6 @@ function buildNodes(
 ): TopologyNode[] {
   const routeNodes: TopologyNode[] = graph.routes.map((route) => {
     const routeTags = graph.tags.filter((tag) => tag.usedBy.includes(route.id));
-
     return {
       id: route.id,
       type: "routeNode",
@@ -129,12 +123,10 @@ function buildNodes(
 
 function buildEdges(graph: CacheGraph): TopologyEdge[] {
   const edges = new Map<string, TopologyEdge>();
-
   graph.routes.forEach((route) => {
     route.layouts.forEach((layoutId, index) => {
       const targetId = index === route.layouts.length - 1 ? route.id : route.layouts[index + 1];
       const edgeId = `${layoutId}->${targetId}`;
-
       if (!edges.has(edgeId)) {
         edges.set(edgeId, {
           id: edgeId,
@@ -145,13 +137,11 @@ function buildEdges(graph: CacheGraph): TopologyEdge[] {
       }
     });
   });
-
   return [...edges.values()];
 }
 
 function layoutGraph(nodes: TopologyNode[], edges: TopologyEdge[]): TopologyNode[] {
   const graph = new dagre.graphlib.Graph();
-
   graph.setGraph({
     rankdir: "TB",
     nodesep: 40,
@@ -176,7 +166,6 @@ function layoutGraph(nodes: TopologyNode[], edges: TopologyEdge[]): TopologyNode
 
   return nodes.map((node) => {
     const positionedNode = graph.node(node.id);
-
     return {
       ...node,
       position: {
@@ -188,10 +177,7 @@ function layoutGraph(nodes: TopologyNode[], edges: TopologyEdge[]): TopologyNode
 }
 
 function getSelectedRoute(graph: CacheGraph, selectedRouteId: string | null): RouteNodeSchema | null {
-  if (!selectedRouteId) {
-    return null;
-  }
-
+  if (!selectedRouteId) return null;
   return graph.routes.find((route) => route.id === selectedRouteId) ?? null;
 }
 
@@ -231,7 +217,7 @@ function TopologyFlow({
   }, [nodes, edges, reactFlow]);
 
   return (
-    <div className="relative h-[calc(100vh-8rem)] overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900">
+    <div className="relative h-[calc(100vh-8rem)] overflow-hidden rounded-lg border border-[#333] bg-[#111]">
       <ReactFlow<TopologyNode, TopologyEdge>
         nodes={nodes}
         edges={edges}
@@ -244,14 +230,14 @@ function TopologyFlow({
         }}
         proOptions={{ hideAttribution: true }}
       >
-        <Background color="#27272a" gap={24} />
-        <Controls className="!border-zinc-800 !bg-zinc-900 !text-zinc-200" />
+        <Background color="#333" gap={24} />
+        <Controls className="!border-[#333] !bg-[#111] !text-gray-300" />
         <MiniMap
           pannable
           zoomable
-          nodeColor="#3f3f46"
-          maskColor="rgba(9, 9, 11, 0.75)"
-          className="!border !border-zinc-800 !bg-zinc-900"
+          nodeColor="#444"
+          maskColor="rgba(0, 0, 0, 0.75)"
+          className="!border !border-[#333] !bg-[#111]"
         />
       </ReactFlow>
 
@@ -262,11 +248,7 @@ function TopologyFlow({
 
 export default function TopologyCanvas(): React.JSX.Element | null {
   const graph = useInspectorStore((state) => state.graph);
-
-  if (!graph) {
-    return null;
-  }
-
+  if (!graph) return null;
   return (
     <ReactFlowProvider>
       <TopologyFlow graph={graph} />

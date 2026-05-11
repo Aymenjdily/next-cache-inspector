@@ -10,28 +10,11 @@ function getLineAndColumn(sourceFile: SourceFile, position: number): { line: num
 }
 
 function getTargetLiteral(argument: Node | undefined): string | undefined {
-  if (!argument) {
-    return undefined;
-  }
-
+  if (!argument) return undefined;
   if (Node.isStringLiteral(argument) || Node.isNoSubstitutionTemplateLiteral(argument)) {
     return argument.getLiteralText();
   }
-
   return undefined;
-}
-
-function shouldScanForRevalidators(sourceFile: SourceFile): boolean {
-  const filePath = sourceFile.getFilePath().replace(/\\/g, "/");
-  const baseName = sourceFile.getBaseName();
-  const text = sourceFile.getFullText();
-
-  return (
-    baseName === "route.ts" ||
-    filePath.includes("/pages/api/") ||
-    text.includes("'use server'") ||
-    text.includes('"use server"')
-  );
 }
 
 function getRevalidatorType(expressionText: string): Revalidator["type"] {
@@ -61,12 +44,10 @@ function buildRevalidator(sourceFile: SourceFile, callExpression: CallExpression
 
 /**
  * Parses cache invalidation calls from a source file.
+ * Scans ALL files — revalidateTag/revalidatePath can live in any Server Component,
+ * Server Action, Route Handler, or API route in a Next.js App Router project.
  */
 export function parseRevalidators(sourceFile: SourceFile): Revalidator[] {
-  if (!shouldScanForRevalidators(sourceFile)) {
-    return [];
-  }
-
   return sourceFile
     .getDescendantsOfKind(SyntaxKind.CallExpression)
     .filter((callExpression: CallExpression) => REVALIDATOR_NAMES.has(callExpression.getExpression().getText()))

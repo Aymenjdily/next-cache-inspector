@@ -6,7 +6,7 @@ import type { CacheGraph } from "@/types";
 
 export type HighlightMode = "none" | "tag" | "route" | "revalidator";
 export type AntiPatternFilter = "all" | "warning" | "error";
-export type InspectorView = "topology" | "tags" | "fetches" | "flow" | "rules";
+export type InspectorView = "dashboard" | "topology" | "tags" | "fetches" | "flow" | "rules" | "onboarding";
 
 export interface InspectorState {
   graph: CacheGraph | null;

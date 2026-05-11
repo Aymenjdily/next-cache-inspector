@@ -7,6 +7,7 @@ import {
   ArrowDownToLine,
   ChevronDown,
   GitBranch,
+  LayoutDashboard,
   Network,
   RefreshCw,
   ShieldAlert,
@@ -25,11 +26,12 @@ interface NavigationItem {
 }
 
 const navigationItems: NavigationItem[] = [
-  { href: "/topology", icon: Network, label: "Topology", view: "topology", shortcut: "⌘1" },
-  { href: "/tags", icon: Tag, label: "Tags", view: "tags", shortcut: "⌘2" },
-  { href: "/fetches", icon: ArrowDownToLine, label: "Fetches", view: "fetches", shortcut: "⌘3" },
-  { href: "/flow", icon: GitBranch, label: "Flow", view: "flow", shortcut: "⌘4" },
-  { href: "/rules", icon: ShieldAlert, label: "Rules", view: "rules", shortcut: "⌘5" },
+  { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard", view: "dashboard", shortcut: "⌘1" },
+  { href: "/topology", icon: Network, label: "Topology", view: "topology", shortcut: "⌘2" },
+  { href: "/tags", icon: Tag, label: "Tags", view: "tags", shortcut: "⌘3" },
+  { href: "/fetches", icon: ArrowDownToLine, label: "Fetches", view: "fetches", shortcut: "⌘4" },
+  { href: "/flow", icon: GitBranch, label: "Flow", view: "flow", shortcut: "⌘5" },
+  { href: "/rules", icon: ShieldAlert, label: "Rules", view: "rules", shortcut: "⌘6" },
 ];
 
 interface SidebarProps {
@@ -41,25 +43,14 @@ interface SidebarProps {
 }
 
 function getProjectName(appDir: string | undefined): string {
-  if (!appDir) {
-    return "No project scanned";
-  }
-
+  if (!appDir) return "No project scanned";
   const parts = appDir.split(/[\\/]/);
   const last = parts[parts.length - 1];
-
-  if (!last) {
-    return "Unknown";
-  }
-
-  return last;
+  return last || "Unknown";
 }
 
 function formatScanTime(scannedAt: string | undefined): string {
-  if (!scannedAt) {
-    return "--";
-  }
-
+  if (!scannedAt) return "--";
   try {
     return new Date(scannedAt).toLocaleString(undefined, {
       month: "short",
@@ -90,7 +81,7 @@ export default function Sidebar({
     <>
       {mobileOpen ? (
         <div
-          className="fixed inset-0 z-[15] bg-zinc-950/95 lg:hidden"
+          className="fixed inset-0 z-[15] bg-[#111]/95 lg:hidden"
           onClick={onCloseMobile}
           aria-hidden="true"
         />
@@ -98,7 +89,7 @@ export default function Sidebar({
 
       <aside
         className={`
-          fixed left-0 top-0 z-20 flex h-screen shrink-0 flex-col border-r border-zinc-800 bg-zinc-900
+          fixed left-0 top-0 z-20 flex h-screen shrink-0 flex-col border-r border-[#333] bg-[#111]
           transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)]
           lg:translate-x-0
           ${mobileOpen ? "translate-x-0" : "-translate-x-full"}
@@ -108,7 +99,7 @@ export default function Sidebar({
         {/* Brand */}
         <div
           className={`
-            flex h-[72px] shrink-0 border-b border-zinc-800
+            flex h-[72px] shrink-0 border-b border-[#333]
             ${collapsed ? "items-center justify-center px-0" : "flex-col justify-center px-4"}
           `}
         >
@@ -126,12 +117,12 @@ export default function Sidebar({
                   alt="next-cache-inspector logo"
                   className="h-8 w-8 shrink-0 rounded-md"
                 />
-                <span className="text-xs font-medium tracking-wider text-zinc-300">
+                <span className="text-xs font-medium tracking-wider text-gray-300">
                   next-cache-inspector
                 </span>
               </div>
               <p
-                className="mt-1 truncate text-[11px] text-zinc-500"
+                className="mt-1 truncate text-[11px] text-gray-500"
                 title={graph?.meta.appDir ?? undefined}
               >
                 {projectName}
@@ -143,7 +134,7 @@ export default function Sidebar({
         {/* Navigation */}
         <nav className={`mt-3 flex-1 px-3 ${collapsed ? "" : "overflow-y-auto"}`} aria-label="Primary">
           {!collapsed && (
-            <div className="mb-2 px-3 text-[10px] font-medium uppercase tracking-wider text-zinc-500">
+            <div className="mb-2 px-3 text-[10px] font-medium uppercase tracking-wider text-gray-500">
               Views
             </div>
           )}
@@ -166,8 +157,8 @@ export default function Sidebar({
                     group relative flex h-8 select-none items-center transition-colors duration-150 ease-out
                     ${collapsed ? "justify-center px-0" : ""}
                     ${isActive
-                      ? "border-l-2 border-l-[#FFC000] bg-zinc-800 text-zinc-100"
-                      : "border-l-2 border-l-transparent text-zinc-300 hover:bg-zinc-800/50 hover:text-zinc-100"
+                      ? "border-l-2 border-l-[#FFC000] bg-[#1a1a1a] text-white"
+                      : "border-l-2 border-l-transparent text-gray-300 hover:bg-[#1a1a1a]/60 hover:text-white"
                     }
                   `}
                 >
@@ -175,7 +166,7 @@ export default function Sidebar({
                     className={`
                       shrink-0 h-4 w-4
                       ${collapsed ? "ml-0 mr-0" : "ml-3 mr-2.5"}
-                      ${isActive ? "text-[#FFC000]" : "text-zinc-400"}
+                      ${isActive ? "text-[#FFC000]" : "text-gray-400"}
                     `}
                   />
                   {!collapsed && (
@@ -185,8 +176,8 @@ export default function Sidebar({
                         className={`
                           ml-auto mr-3 font-mono text-[10px]
                           ${isActive
-                            ? "text-zinc-400"
-                            : "text-zinc-600 opacity-0 transition-opacity duration-150 group-hover:opacity-100"
+                            ? "text-gray-400"
+                            : "text-gray-600 opacity-0 transition-opacity duration-150 group-hover:opacity-100"
                           }
                         `}
                       >
@@ -195,7 +186,7 @@ export default function Sidebar({
                     </>
                   )}
                   {collapsed && (
-                    <span className="invisible absolute left-full top-1/2 z-50 ml-2 -translate-y-1/2 whitespace-nowrap rounded bg-zinc-800 px-2 py-1 text-xs text-zinc-100 shadow-lg ring-1 ring-zinc-700 transition-opacity duration-150 group-hover:visible group-hover:opacity-100 opacity-0">
+                    <span className="invisible absolute left-full top-1/2 z-50 ml-2 -translate-y-1/2 whitespace-nowrap rounded bg-[#1a1a1a] px-2 py-1 text-xs text-white shadow-lg ring-1 ring-[#333] transition-opacity duration-150 group-hover:visible group-hover:opacity-100 opacity-0">
                       {item.label}
                     </span>
                   )}
@@ -204,7 +195,7 @@ export default function Sidebar({
             })}
           </div>
 
-          {!collapsed && <div className="my-3 h-px bg-zinc-800" />}
+          {!collapsed && <div className="my-3 h-px bg-[#333]" />}
 
           {/* Meta section */}
           {!collapsed && (
@@ -212,7 +203,7 @@ export default function Sidebar({
               <button
                 type="button"
                 onClick={(): void => setMetaOpen((prev) => !prev)}
-                className="flex w-full items-center justify-between px-3 py-1.5 text-[10px] font-medium uppercase tracking-wider text-zinc-500 transition-colors hover:text-zinc-400"
+                className="flex w-full items-center justify-between px-3 py-1.5 text-[10px] font-medium uppercase tracking-wider text-gray-500 transition-colors hover:text-gray-400"
               >
                 <span>Scan Meta</span>
                 <ChevronDown
@@ -227,20 +218,20 @@ export default function Sidebar({
                 <div className="overflow-hidden">
                   <div className="space-y-2 px-3 py-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-[11px] text-zinc-400">Scanned</span>
-                      <span className="text-[11px] text-zinc-500">
+                      <span className="text-[11px] text-gray-400">Scanned</span>
+                      <span className="text-[11px] text-gray-500">
                         {formatScanTime(graph?.meta.scannedAt)}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-[11px] text-zinc-400">Routes</span>
-                      <span className="font-mono text-[11px] text-zinc-500">
+                      <span className="text-[11px] text-gray-400">Routes</span>
+                      <span className="font-mono text-[11px] text-gray-500">
                         {graph?.routes.length ?? 0}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-[11px] text-zinc-400">Tags</span>
-                      <span className="font-mono text-[11px] text-zinc-500">
+                      <span className="text-[11px] text-gray-400">Tags</span>
+                      <span className="font-mono text-[11px] text-gray-500">
                         {graph?.tags.length ?? 0}
                       </span>
                     </div>
@@ -248,7 +239,7 @@ export default function Sidebar({
                       type="button"
                       onClick={onRescan}
                       disabled={isRescanning}
-                      className="mt-1 flex h-7 w-full items-center justify-center gap-1.5 rounded-md text-[11px] font-medium text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-zinc-300 disabled:cursor-not-allowed disabled:text-zinc-600"
+                      className="mt-1 flex h-7 w-full items-center justify-center gap-1.5 rounded-md text-[11px] font-medium text-gray-400 transition-colors hover:bg-[#1a1a1a] hover:text-gray-300 disabled:cursor-not-allowed disabled:text-gray-600"
                     >
                       <RefreshCw className={`h-3.5 w-3.5 ${isRescanning ? "animate-spin" : ""}`} />
                       <span>Rescan</span>
@@ -263,19 +254,19 @@ export default function Sidebar({
         {/* Bottom status bar */}
         <div
           className={`
-            flex h-12 shrink-0 items-center border-t border-zinc-800
+            flex h-12 shrink-0 items-center border-t border-[#333]
             ${collapsed ? "justify-center px-0" : "justify-between px-4"}
           `}
         >
           <div className="flex items-center gap-2">
             <span className={`h-1.5 w-1.5 rounded-full ${graph ? "bg-emerald-500" : "bg-amber-500"}`} />
             {!collapsed && (
-              <span className="text-[11px] text-zinc-500">
+              <span className="text-[11px] text-gray-500">
                 {graph ? "Connected" : "Empty"}
               </span>
             )}
           </div>
-          {!collapsed && <span className="font-mono text-[10px] text-zinc-600">v0.1.0</span>}
+          {!collapsed && <span className="font-mono text-[10px] text-gray-600">v0.1.0</span>}
         </div>
       </aside>
     </>

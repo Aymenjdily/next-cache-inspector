@@ -42,19 +42,18 @@ function FlowInfoNode({ data }: NodeProps<FlowDisplayNode>): React.JSX.Element {
     <button
       type="button"
       onClick={data.onClick}
-      className="flex min-h-14 min-w-44 flex-col rounded-lg border border-zinc-800 bg-zinc-900 p-3 text-left transition-colors hover:bg-zinc-800"
+      className="flex min-h-14 min-w-44 flex-col rounded-lg border border-[#333] bg-[#111] p-3 text-left transition-colors hover:bg-[#1a1a1a]"
       style={{ opacity: data.opacity }}
     >
-      <span className="font-mono text-xs font-medium text-zinc-50">{data.label}</span>
-      {data.subtitle ? <span className="mt-1 text-sm text-zinc-400">{data.subtitle}</span> : null}
-      {data.blastRadius ? <span className="mt-2 text-[11px] font-medium text-zinc-300">{data.blastRadius}</span> : null}
+      <span className="font-mono text-xs font-medium text-white">{data.label}</span>
+      {data.subtitle ? <span className="mt-1 text-sm text-gray-400">{data.subtitle}</span> : null}
+      {data.blastRadius ? <span className="mt-2 text-[11px] font-medium text-gray-300">{data.blastRadius}</span> : null}
     </button>
   );
 }
 
 function InvalidationFlowEdge(props: EdgeProps): React.JSX.Element {
   const [path] = getSmoothStepPath(props);
-
   return <BaseEdge path={path} style={{ stroke: "#a855f7", strokeWidth: 1.5 }} />;
 }
 
@@ -69,10 +68,7 @@ const edgeTypes = {
 };
 
 function getRouteSourcePath(graph: CacheGraph, route: RouteNodeSchema): string {
-  if (route.fetches[0]?.sourceFile) {
-    return route.fetches[0].sourceFile;
-  }
-
+  if (route.fetches[0]?.sourceFile) return route.fetches[0].sourceFile;
   return `${graph.meta.appDir.replace(/\\/g, "/")}/${route.id}`;
 }
 
@@ -85,26 +81,16 @@ function getConnectedGraph(
   selectedRevalidator: Revalidator | null;
 } {
   if (!selectedRevalidatorId) {
-    return {
-      connectedTagNames: new Set<string>(),
-      connectedRouteIds: new Set<string>(),
-      selectedRevalidator: null,
-    };
+    return { connectedTagNames: new Set<string>(), connectedRouteIds: new Set<string>(), selectedRevalidator: null };
   }
 
   const selectedRevalidator = graph.revalidators.find((revalidator) => revalidator.id === selectedRevalidatorId) ?? null;
-
   if (!selectedRevalidator) {
-    return {
-      connectedTagNames: new Set<string>(),
-      connectedRouteIds: new Set<string>(),
-      selectedRevalidator: null,
-    };
+    return { connectedTagNames: new Set<string>(), connectedRouteIds: new Set<string>(), selectedRevalidator: null };
   }
 
   if (selectedRevalidator.type === "tag") {
     const connectedTag = graph.tags.find((tag) => tag.name === selectedRevalidator.target);
-
     return {
       connectedTagNames: new Set(connectedTag ? [connectedTag.name] : []),
       connectedRouteIds: new Set(connectedTag?.usedBy ?? []),
@@ -151,9 +137,7 @@ function buildFlowNodes(
         subtitle: `${revalidator.type} revalidator`,
         blastRadius: `Affects ${connectedRoutes.length} routes, ${connectedTags.length} tags`,
         opacity: shouldFade && selectedRevalidatorId !== revalidator.id ? 0.3 : 1,
-        onClick: (): void => {
-          onSelectRevalidator(revalidator.id);
-        },
+        onClick: (): void => onSelectRevalidator(revalidator.id),
       },
     };
   });
@@ -171,7 +155,6 @@ function buildFlowNodes(
 
   const routeNodes: RouteFlowNode[] = graph.routes.map((route) => {
     const tagCount = graph.tags.filter((tag) => tag.usedBy.includes(route.id)).length;
-
     return {
       id: route.id,
       type: "routeNode",
@@ -211,7 +194,6 @@ function buildFlowEdges(graph: CacheGraph): FlowDisplayEdge[] {
       });
     } else {
       const routes = graph.routes.filter((route) => route.path === revalidator.target);
-
       routes.forEach((route) => {
         edges.push({
           id: `${revalidator.id}->${route.id}`,
@@ -241,7 +223,6 @@ function buildFlowEdges(graph: CacheGraph): FlowDisplayEdge[] {
 
 function layoutGraph(nodes: Array<FlowDisplayNode | RouteFlowNode>, edges: FlowDisplayEdge[]): Array<FlowDisplayNode | RouteFlowNode> {
   const graph = new dagre.graphlib.Graph();
-
   graph.setGraph({
     rankdir: "LR",
     nodesep: 48,
@@ -254,7 +235,6 @@ function layoutGraph(nodes: Array<FlowDisplayNode | RouteFlowNode>, edges: FlowD
   nodes.forEach((node) => {
     const width = "width" in node && typeof node.width === "number" ? node.width : 180;
     const height = "height" in node && typeof node.height === "number" ? node.height : 64;
-
     graph.setNode(node.id, { width, height });
   });
 
@@ -300,9 +280,7 @@ function FlowGraph({
           (sourcePath: string): void => {
             window.location.href = `vscode://file/${sourcePath}`;
           },
-          (id: string): void => {
-            selectRoute(id);
-          },
+          (id: string): void => selectRoute(id),
           (id: string | null): void => {
             selectRevalidator(id);
             setHighlightMode(id ? "revalidator" : "none");
@@ -318,7 +296,7 @@ function FlowGraph({
   }, [edges, nodes, reactFlow]);
 
   return (
-    <div className="relative h-[calc(100vh-8rem)] overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900">
+    <div className="relative h-[calc(100vh-8rem)] overflow-hidden rounded-lg border border-[#333] bg-[#111]">
       <ReactFlow<Array<FlowDisplayNode | RouteFlowNode>[number], FlowDisplayEdge>
         nodes={nodes}
         edges={edges}
@@ -330,9 +308,9 @@ function FlowGraph({
         }}
         proOptions={{ hideAttribution: true }}
       >
-        <Background color="#27272a" gap={24} />
-        <Controls className="!border-zinc-800 !bg-zinc-900 !text-zinc-200" />
-        <MiniMap pannable zoomable nodeColor="#3f3f46" maskColor="rgba(9, 9, 11, 0.75)" className="!border !border-zinc-800 !bg-zinc-900" />
+        <Background color="#333" gap={24} />
+        <Controls className="!border-[#333] !bg-[#111] !text-gray-300" />
+        <MiniMap pannable zoomable nodeColor="#444" maskColor="rgba(0, 0, 0, 0.75)" className="!border !border-[#333] !bg-[#111]" />
       </ReactFlow>
     </div>
   );
@@ -340,11 +318,7 @@ function FlowGraph({
 
 export default function FlowViewClient(): React.JSX.Element | null {
   const graph = useInspectorStore((state) => state.graph);
-
-  if (!graph) {
-    return null;
-  }
-
+  if (!graph) return null;
   return (
     <ReactFlowProvider>
       <FlowGraph graph={graph} />

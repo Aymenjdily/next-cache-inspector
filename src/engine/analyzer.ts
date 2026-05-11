@@ -12,7 +12,7 @@ import { parseRouteFile } from "@/engine/parsers/routeParser";
 import type { ParsedRouteModule, RawScanResult } from "@/engine/types";
 import type { CacheGraph } from "@/types";
 
-const SCANNABLE_EXTENSIONS = new Set([".ts", ".tsx"]);
+const SCANNABLE_EXTENSIONS = new Set([".ts", ".tsx", ".js", ".jsx"]);
 
 async function pathExists(targetPath: string): Promise<boolean> {
   try {
@@ -58,7 +58,10 @@ async function hasRouteEntry(appDir: string): Promise<boolean> {
   const filePaths = await walkDirectory(appDir);
   return filePaths.some((filePath) => {
     const baseName = path.basename(filePath);
-    return baseName === "page.tsx" || baseName === "layout.tsx";
+    return (
+      baseName === "page.tsx" || baseName === "page.ts" || baseName === "page.jsx" || baseName === "page.js" ||
+      baseName === "layout.tsx" || baseName === "layout.ts" || baseName === "layout.jsx" || baseName === "layout.js"
+    );
   });
 }
 

@@ -26,36 +26,63 @@ export default function HowItWorksSection(): React.JSX.Element {
   ];
 
   return (
-    <section id="how-it-works" className="border-t border-zinc-800/50">
-      <div className="mx-auto max-w-5xl px-6 py-20">
-        <div className="mb-12 text-center">
-          <h2 className="text-2xl font-semibold tracking-tight text-zinc-100">
+    <section id="how-it-works" className="border-t border-[#333] bg-[#111]">
+      <div className="mx-auto max-w-5xl px-6 py-20 sm:py-24">
+        <div className="mb-16 text-center">
+          <h2 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">
             How it works
           </h2>
-          <p className="mt-2 text-sm text-zinc-400">
+          <p className="mx-auto mt-3 max-w-xl text-sm text-gray-400">
             From zero to insight in three steps.
           </p>
         </div>
 
-        <div className="grid gap-8 md:grid-cols-3">
-          {steps.map((step) => (
-            <div key={step.number} className="relative">
-              <span className="font-mono text-3xl font-bold text-zinc-800">
-                {step.number}
-              </span>
-              <h3 className="mt-4 text-sm font-semibold text-zinc-100">
-                {step.title}
-              </h3>
-              <p className="mt-1.5 text-[13px] leading-relaxed text-zinc-400">
-                {step.description}
-              </p>
-              <div className="mt-4 rounded-md border border-zinc-800 bg-zinc-950 px-3 py-2">
-                <code className="font-mono text-[12px] text-zinc-300">
-                  {step.command}
-                </code>
-              </div>
-            </div>
-          ))}
+        <div className="relative">
+          {/* Connecting line */}
+          <div className="absolute left-8 top-0 hidden h-full w-px bg-[#333] md:left-1/2 md:block" />
+
+          <div className="space-y-12">
+            {steps.map((step, i) => {
+              const isEven = i % 2 === 0;
+              return (
+                <div
+                  key={step.number}
+                  className={`relative flex flex-col gap-6 md:flex-row md:items-center ${
+                    isEven ? "md:flex-row" : "md:flex-row-reverse"
+                  }`}
+                >
+                  {/* Number circle */}
+                  <div className="absolute left-8 hidden h-8 w-8 -translate-x-1/2 items-center justify-center rounded-full border border-[#333] bg-[#111] text-xs font-bold text-gray-400 md:flex">
+                    {step.number}
+                  </div>
+
+                  {/* Text content */}
+                  <div className={`flex-1 ${isEven ? "md:pr-16 md:text-right" : "md:pl-16 md:text-left"}`}>
+                    <span className="font-mono text-lg font-bold text-[#333] md:hidden">
+                      {step.number}
+                    </span>
+                    <h3 className="mt-2 text-lg font-semibold text-white md:mt-0">
+                      {step.title}
+                    </h3>
+                    <p className="mt-2 text-sm leading-relaxed text-gray-400">
+                      {step.description}
+                    </p>
+                  </div>
+
+                  {/* Code block */}
+                  <div className={`flex-1 ${isEven ? "md:pl-16" : "md:pr-16"}`}>
+                    <div className="rounded-lg border border-[#333] bg-[#111] p-1">
+                      <div className="rounded-md bg-[#0a0a0a] px-4 py-3">
+                        <code className="font-mono text-sm text-gray-300">
+                          {step.command}
+                        </code>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
     </section>

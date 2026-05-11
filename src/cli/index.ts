@@ -2,7 +2,7 @@
 
 import fs from "node:fs/promises";
 import path from "node:path";
-import { spawn } from "node:child_process";
+import { spawn, exec } from "node:child_process";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import { tmpdir } from "node:os";
@@ -184,13 +184,27 @@ async function cleanupTempDashboardDir(tempDir: string): Promise<void> {
   }
 }
 
+function openBrowser(url: string): void {
+  const platform = process.platform;
+  const command =
+    platform === "darwin" ? `open "${url}"` :
+    platform === "win32" ? `start "" "${url}"` :
+    `xdg-open "${url}"`;
+
+  exec(command, (err) => {
+    if (err) {
+      process.stderr.write(`Failed to open browser: ${err.message}\n`);
+    }
+  });
+}
+
 async function startStandaloneServer(port: number, graphPath: string): Promise<number> {
   const inspectorRoot = getInspectorRoot();
   const nextBin = getNextBinPath();
   const tempDir = await prepareTempDashboardDir(inspectorRoot);
 
   return new Promise<number>((resolve, reject) => {
-    const child = spawn(process.execPath, [nextBin, "dev", "--port", String(port)], {
+    const child = spawn(process.execPath, [nextBin, "dev", "--port", String(port), "--no-open"], {
       cwd: tempDir,
       stdio: "inherit",
       env: {
@@ -206,6 +220,11 @@ async function startStandaloneServer(port: number, graphPath: string): Promise<n
       await cleanupTempDashboardDir(tempDir);
       resolve(code ?? 0);
     });
+
+    // Open browser to topology after giving the server time to start
+    setTimeout(() => {
+      openBrowser(`http://localhost:${port}/topology`);
+    }, 2000);
   });
 }
 

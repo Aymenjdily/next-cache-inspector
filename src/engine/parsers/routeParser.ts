@@ -15,23 +15,23 @@ function normalizeSlashes(value: string): string {
 }
 
 function getModuleKind(baseName: string): RouteModuleKind | null {
-  if (baseName === "page.tsx") {
+  if (baseName === "page.tsx" || baseName === "page.ts" || baseName === "page.jsx" || baseName === "page.js") {
     return "page";
   }
 
-  if (baseName === "layout.tsx") {
+  if (baseName === "layout.tsx" || baseName === "layout.ts" || baseName === "layout.jsx" || baseName === "layout.js") {
     return "layout";
   }
 
-  if (baseName === "route.ts") {
+  if (baseName === "route.ts" || baseName === "route.tsx" || baseName === "route.js" || baseName === "route.jsx") {
     return "route";
   }
 
-  if (baseName === "loading.tsx") {
+  if (baseName === "loading.tsx" || baseName === "loading.ts" || baseName === "loading.jsx" || baseName === "loading.js") {
     return "loading";
   }
 
-  if (baseName === "error.tsx") {
+  if (baseName === "error.tsx" || baseName === "error.ts" || baseName === "error.jsx" || baseName === "error.js") {
     return "error";
   }
 

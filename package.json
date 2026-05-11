@@ -27,6 +27,9 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^1.1.0",
+    "@prisma/adapter-neon": "^7.8.0",
+    "@prisma/client": "^7.8.0",
     "@tailwindcss/postcss": "4.1.13",
     "@types/node": "24.9.1",
     "@types/react": "19.2.2",
@@ -49,6 +52,7 @@
   },
   "devDependencies": {
     "@types/dagre": "^0.7.54",
+    "prisma": "^7.8.0",
     "tsup": "^8.5.1"
   }
 }

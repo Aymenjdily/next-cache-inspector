@@ -2,16 +2,13 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import { usePathname } from "next/navigation";
-import { useTheme } from "next-themes";
 import {
   ChevronLeft,
   ChevronRight,
   Info,
   Menu,
-  Moon,
   RefreshCw,
   Settings,
-  Sun,
   Trash2,
   X,
 } from "lucide-react";
@@ -20,14 +17,17 @@ import { getSavedAppDir, saveAppDir } from "@/app/_lib/appDirStorage";
 import ScanScreen from "@/app/_components/ScanScreen";
 import Sidebar from "@/app/_components/Sidebar";
 import { useInspectorStore } from "@/app/_store/inspectorStore";
+import type { InspectorView } from "@/app/_store/inspectorStore";
 import type { CacheGraph } from "@/types";
 
 function getViewName(pathname: string): string {
+  if (pathname === "/dashboard") return "Dashboard";
   if (pathname === "/topology") return "Topology";
   if (pathname === "/tags") return "Tags";
   if (pathname === "/fetches") return "Fetches";
   if (pathname === "/flow") return "Flow";
   if (pathname === "/rules") return "Rules";
+  if (pathname === "/settings") return "Settings";
   return "Dashboard";
 }
 
@@ -47,29 +47,21 @@ export default function InspectorShell({
   const [settingsOpen, setSettingsOpen] = useState(false);
   const settingsRef = useRef<HTMLDivElement>(null);
 
-  const { theme, resolvedTheme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   useEffect(() => {
     const stored = getSavedAppDir();
-    if (stored) {
-      setSavedAppDir(stored);
-    }
+    if (stored) setSavedAppDir(stored);
   }, []);
 
   useEffect(() => {
     const stored = localStorage.getItem("sidebar-collapsed");
-    if (stored !== null) {
-      setCollapsed(stored === "true");
-    }
+    if (stored !== null) setCollapsed(stored === "true");
   }, []);
 
   useEffect((): void => {
-    const viewMap: Record<string, "topology" | "tags" | "fetches" | "flow" | "rules"> = {
+    const viewMap: Record<string, InspectorView> = {
+      "/dashboard": "dashboard",
       "/topology": "topology",
       "/tags": "tags",
       "/fetches": "fetches",
@@ -77,9 +69,7 @@ export default function InspectorShell({
       "/rules": "rules",
     };
     const matched = viewMap[pathname];
-    if (matched) {
-      setView(matched);
-    }
+    if (matched) setView(matched);
   }, [pathname, setView]);
 
   useEffect(() => {
@@ -88,37 +78,25 @@ export default function InspectorShell({
         setSettingsOpen(false);
       }
     }
-
     if (settingsOpen) {
       document.addEventListener("mousedown", handleClickOutside);
     }
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [settingsOpen]);
 
   const targetAppDir = graph?.meta.appDir ?? savedAppDir;
   const canRefresh = Boolean(targetAppDir);
 
   const handleRescan = (): void => {
-    if (!canRefresh || isPending) {
-      return;
-    }
-
+    if (!canRefresh || isPending) return;
     startTransition(async (): Promise<void> => {
       const response = await fetch("/api/scan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ appDir: targetAppDir }),
       });
-
       const payload = (await response.json()) as { graph?: CacheGraph; error?: string };
-
-      if (!response.ok || !payload.graph) {
-        return;
-      }
-
+      if (!response.ok || !payload.graph) return;
       saveAppDir(targetAppDir);
       setSavedAppDir(targetAppDir);
       setGraph(payload.graph);
@@ -133,10 +111,6 @@ export default function InspectorShell({
     });
   };
 
-  const handleToggleTheme = (): void => {
-    setTheme(resolvedTheme === "dark" ? "light" : "dark");
-  };
-
   const handleClearData = (): void => {
     setGraph(undefined as unknown as CacheGraph);
     localStorage.removeItem("nci-app-dir");
@@ -145,11 +119,8 @@ export default function InspectorShell({
   };
 
   const viewName = getViewName(pathname);
-
-  const ThemeIcon = mounted && resolvedTheme === "dark" ? Moon : Sun;
-
   return (
-    <div className="flex min-h-screen bg-zinc-950 text-zinc-50">
+    <div className="flex min-h-screen bg-[#111] text-gray-100">
       <Sidebar
         onRescan={handleRescan}
         isRescanning={isPending}
@@ -166,12 +137,12 @@ export default function InspectorShell({
         `}
       >
         {/* Top bar */}
-        <header className="flex h-14 shrink-0 items-center justify-between border-b border-zinc-800 bg-zinc-950 px-6">
+        <header className="flex h-14 shrink-0 items-center justify-between border-b border-[#333] bg-[#111] px-6">
           <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={(): void => setMobileOpen(true)}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-md text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-zinc-100 lg:hidden"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-[#1a1a1a] hover:text-white lg:hidden"
               aria-label="Open sidebar"
             >
               <Menu className="h-4 w-4" />
@@ -180,14 +151,14 @@ export default function InspectorShell({
             <button
               type="button"
               onClick={handleToggleCollapse}
-              className="hidden lg:inline-flex h-8 w-8 items-center justify-center rounded-md text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-zinc-100"
+              className="hidden lg:inline-flex h-8 w-8 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-[#1a1a1a] hover:text-white"
               aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
               title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
             >
               {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
             </button>
 
-            <h1 className="text-sm font-medium text-zinc-100">{viewName}</h1>
+            <h1 className="text-sm font-medium text-white">{viewName}</h1>
           </div>
 
           <div className="flex items-center gap-1">
@@ -195,7 +166,7 @@ export default function InspectorShell({
               type="button"
               onClick={handleRescan}
               disabled={!canRefresh || isPending}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-md text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-zinc-100 disabled:cursor-not-allowed disabled:text-zinc-600"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-[#1a1a1a] hover:text-white disabled:cursor-not-allowed disabled:text-gray-600"
               aria-label="Refresh graph"
               title="Refresh graph"
             >
@@ -206,7 +177,7 @@ export default function InspectorShell({
               <button
                 type="button"
                 onClick={(): void => setSettingsOpen((prev) => !prev)}
-                className={`inline-flex h-8 w-8 items-center justify-center rounded-md text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-zinc-100 ${settingsOpen ? "bg-zinc-800 text-zinc-100" : ""}`}
+                className={`inline-flex h-8 w-8 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-[#1a1a1a] hover:text-white ${settingsOpen ? "bg-[#1a1a1a] text-white" : ""}`}
                 aria-label="Settings"
                 title="Settings"
                 aria-expanded={settingsOpen}
@@ -215,22 +186,22 @@ export default function InspectorShell({
               </button>
 
               {settingsOpen && (
-                <div className="absolute right-0 top-full z-50 mt-2 w-56 rounded-lg border border-zinc-800 bg-zinc-900 p-1 shadow-xl">
+                <div className="absolute right-0 top-full z-50 mt-2 w-56 rounded-lg border border-[#333] bg-[#1a1a1a] p-1 shadow-xl">
                   <div className="flex items-center justify-between px-3 py-2">
-                    <span className="text-xs font-medium text-zinc-300">Settings</span>
+                    <span className="text-xs font-medium text-gray-300">Settings</span>
                     <button
                       type="button"
                       onClick={(): void => setSettingsOpen(false)}
-                      className="inline-flex h-5 w-5 items-center justify-center rounded text-zinc-500 transition-colors hover:text-zinc-300"
+                      className="inline-flex h-5 w-5 items-center justify-center rounded text-gray-500 transition-colors hover:text-gray-300"
                     >
                       <X className="h-3 w-3" />
                     </button>
                   </div>
 
-                  <div className="my-1 h-px bg-zinc-800" />
+                  <div className="my-1 h-px bg-[#333]" />
 
                   <div className="px-3 py-2">
-                    <div className="flex items-center gap-2 text-[11px] text-zinc-500">
+                    <div className="flex items-center gap-2 text-[11px] text-gray-500">
                       <Info className="h-3 w-3" />
                       <span>next-cache-inspector v0.1.0</span>
                     </div>
@@ -239,7 +210,7 @@ export default function InspectorShell({
                   <button
                     type="button"
                     onClick={handleClearData}
-                    className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-[13px] text-red-400 transition-colors hover:bg-zinc-800"
+                    className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-[13px] text-red-400 transition-colors hover:bg-[#252525]"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                     <span>Clear scan data</span>
@@ -248,19 +219,11 @@ export default function InspectorShell({
               )}
             </div>
 
-            <button
-              type="button"
-              onClick={handleToggleTheme}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-md text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-zinc-100"
-              aria-label={mounted && resolvedTheme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-              title={mounted && resolvedTheme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-            >
-              <ThemeIcon className="h-4 w-4" />
-            </button>
+
           </div>
         </header>
 
-        <main className="flex-1 bg-zinc-950 p-6">
+        <main className="flex-1 bg-[#111] p-6">
           {graph ? children : <ScanScreen />}
         </main>
       </div>

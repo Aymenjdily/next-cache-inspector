@@ -73,9 +73,7 @@ export default function ScanScreen(): React.JSX.Element {
       setProgressIndex(0);
       progressTimerRef.current = setInterval(() => {
         setProgressIndex((prev) => {
-          if (prev >= PROGRESS_MESSAGES.length - 1) {
-            return prev;
-          }
+          if (prev >= PROGRESS_MESSAGES.length - 1) return prev;
           return prev + 1;
         });
       }, 800);
@@ -85,11 +83,8 @@ export default function ScanScreen(): React.JSX.Element {
         progressTimerRef.current = null;
       }
     }
-
     return () => {
-      if (progressTimerRef.current) {
-        clearInterval(progressTimerRef.current);
-      }
+      if (progressTimerRef.current) clearInterval(progressTimerRef.current);
     };
   }, [isLoading]);
 
@@ -128,7 +123,7 @@ export default function ScanScreen(): React.JSX.Element {
         setIsLoading(false);
       }
     },
-    [isLoading, router, setGraph]
+    [isLoading, router, setGraph],
   );
 
   const handleSubmit = useCallback((): void => {
@@ -137,11 +132,9 @@ export default function ScanScreen(): React.JSX.Element {
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>): void => {
-      if (e.key === "Enter") {
-        handleSubmit();
-      }
+      if (e.key === "Enter") handleSubmit();
     },
-    [handleSubmit]
+    [handleSubmit],
   );
 
   const handleCopyInstall = useCallback(async (): Promise<void> => {
@@ -150,7 +143,7 @@ export default function ScanScreen(): React.JSX.Element {
       setCopiedInstall(true);
       setTimeout(() => setCopiedInstall(false), 2000);
     } catch {
-      // ignore copy errors
+      // ignore
     }
   }, []);
 
@@ -160,37 +153,31 @@ export default function ScanScreen(): React.JSX.Element {
       setCopiedRun(true);
       setTimeout(() => setCopiedRun(false), 2000);
     } catch {
-      // ignore copy errors
+      // ignore
     }
   }, []);
 
   return (
-    <div className="flex h-[calc(100vh-56px)] w-full flex-col items-center justify-center bg-zinc-950 px-4">
-      <div className="w-full max-w-[480px] rounded-lg border border-zinc-800 bg-zinc-900 p-8">
+    <div className="flex h-[calc(100vh-56px)] w-full flex-col items-center justify-center bg-[#111] px-4">
+      <div className="w-full max-w-[480px] rounded-lg border border-[#333] bg-[#111] p-8">
         <div className="space-y-6">
           {/* Icon + Title Block */}
           <div className="flex flex-col items-center text-center">
-            <Radar
-              className="h-8 w-8 text-[#FFC000]"
-              strokeWidth={1.5}
-              aria-hidden="true"
-            />
-            <h1 className="mt-4 text-lg font-semibold text-zinc-100">
+            <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl border border-[#333] bg-[#1a1a1a]">
+              <Radar className="h-6 w-6 text-[#FFC000]" strokeWidth={1.5} />
+            </div>
+            <h1 className="mt-4 text-lg font-semibold text-white">
               Inspect your cache
             </h1>
-            <p className="mt-1.5 text-sm leading-relaxed text-zinc-400">
-              Select a Next.js project to analyze its App Router caching
-              strategy.
+            <p className="mt-1.5 text-sm leading-relaxed text-gray-400">
+              Select a Next.js project to analyze its App Router caching strategy.
             </p>
           </div>
 
           {/* Path Input + CTA */}
           <div className="space-y-3">
             <div className="relative">
-              <FolderOpen
-                className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-500"
-                aria-hidden="true"
-              />
+              <FolderOpen className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-600" />
               <input
                 ref={inputRef}
                 type="text"
@@ -199,7 +186,7 @@ export default function ScanScreen(): React.JSX.Element {
                 onKeyDown={handleKeyDown}
                 placeholder="./my-app"
                 disabled={isLoading}
-                className="h-10 w-full rounded-md border border-zinc-800 bg-zinc-950 px-3 py-2 pl-9 font-mono text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-zinc-700 focus:outline-none disabled:opacity-50"
+                className="h-10 w-full rounded-lg border border-[#333] bg-[#0a0a0a] px-3 py-2 pl-9 font-mono text-sm text-white placeholder:text-gray-600 outline-none focus:border-[#FFC000] disabled:opacity-50"
               />
             </div>
 
@@ -207,7 +194,7 @@ export default function ScanScreen(): React.JSX.Element {
               type="button"
               onClick={handleSubmit}
               disabled={!appDir.trim() || isLoading}
-              className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-md bg-[#FFC000] text-sm font-medium text-zinc-950 transition-colors hover:bg-[#E6AC00] disabled:cursor-not-allowed disabled:bg-zinc-800 disabled:text-zinc-500"
+              className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-lg bg-[#FFC000] text-sm font-medium text-zinc-950 transition-colors hover:bg-[#E6AC00] disabled:cursor-not-allowed disabled:bg-[#1a1a1a] disabled:text-gray-500"
             >
               {isLoading ? (
                 <>
@@ -226,7 +213,7 @@ export default function ScanScreen(): React.JSX.Element {
           {/* Recent Projects */}
           {recent.length > 0 && (
             <div className="space-y-2">
-              <div className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">
+              <div className="text-[11px] font-medium uppercase tracking-wider text-gray-500">
                 Recent
               </div>
               <div className="flex flex-col gap-[2px]">
@@ -236,15 +223,15 @@ export default function ScanScreen(): React.JSX.Element {
                     type="button"
                     onClick={() => runScan(path)}
                     disabled={isLoading}
-                    className="group flex h-8 items-center justify-between rounded-md px-2 transition-colors hover:bg-zinc-800/50 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="group flex h-8 items-center justify-between rounded-md px-2 transition-colors hover:bg-[#1a1a1a] disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <div className="flex items-center gap-2 min-w-0">
-                      <Folder className="h-3.5 w-3.5 shrink-0 text-zinc-500" />
-                      <span className="truncate font-mono text-[13px] text-zinc-300">
+                      <Folder className="h-3.5 w-3.5 shrink-0 text-gray-600" />
+                      <span className="truncate font-mono text-[13px] text-gray-300">
                         {path}
                       </span>
                     </div>
-                    <ArrowUpRight className="h-3.5 w-3.5 shrink-0 text-zinc-600 transition-colors group-hover:text-zinc-400" />
+                    <ArrowUpRight className="h-3.5 w-3.5 shrink-0 text-gray-600 transition-colors group-hover:text-gray-400" />
                   </button>
                 ))}
               </div>
@@ -253,19 +240,19 @@ export default function ScanScreen(): React.JSX.Element {
 
           {/* CLI Installation */}
           <div className="space-y-3">
-            <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">
+            <p className="text-[11px] font-medium uppercase tracking-wider text-gray-500">
               Or install via CLI
             </p>
 
             <div className="space-y-2">
               <div className="relative">
-                <div className="rounded-md border border-zinc-800 bg-zinc-950 p-2.5 font-mono text-[12px] text-zinc-300 select-all">
+                <div className="rounded-lg border border-[#333] bg-[#0a0a0a] p-2.5 font-mono text-[12px] text-gray-300 select-all">
                   npm install -g next-cache-inspector
                 </div>
                 <button
                   type="button"
                   onClick={handleCopyInstall}
-                  className="absolute right-2 top-1/2 inline-flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded text-zinc-500 transition-colors hover:bg-zinc-800 hover:text-zinc-300"
+                  className="absolute right-2 top-1/2 inline-flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded text-gray-500 transition-colors hover:bg-[#1a1a1a] hover:text-gray-300"
                   aria-label="Copy install command"
                   title={copiedInstall ? "Copied!" : "Copy"}
                 >
@@ -278,13 +265,13 @@ export default function ScanScreen(): React.JSX.Element {
               </div>
 
               <div className="relative">
-                <div className="rounded-md border border-zinc-800 bg-zinc-950 p-2.5 font-mono text-[12px] text-zinc-300 select-all">
+                <div className="rounded-lg border border-[#333] bg-[#0a0a0a] p-2.5 font-mono text-[12px] text-gray-300 select-all">
                   next-cache-inspector --dir ./your-app
                 </div>
                 <button
                   type="button"
                   onClick={handleCopyRun}
-                  className="absolute right-2 top-1/2 inline-flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded text-zinc-500 transition-colors hover:bg-zinc-800 hover:text-zinc-300"
+                  className="absolute right-2 top-1/2 inline-flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded text-gray-500 transition-colors hover:bg-[#1a1a1a] hover:text-gray-300"
                   aria-label="Copy run command"
                   title={copiedRun ? "Copied!" : "Copy"}
                 >
@@ -301,7 +288,7 @@ export default function ScanScreen(): React.JSX.Element {
               href="https://www.npmjs.com/package/next-cache-inspector"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-[11px] text-zinc-500 transition-colors hover:text-[#FFC000]"
+              className="inline-flex items-center gap-1.5 text-[11px] text-gray-500 transition-colors hover:text-[#FFC000]"
             >
               <BookOpen className="h-3 w-3" />
               <span>Documentation</span>
@@ -314,7 +301,7 @@ export default function ScanScreen(): React.JSX.Element {
       {/* Status / Error Area */}
       <div className="mt-4 h-6">
         {isLoading && (
-          <p className="text-sm text-zinc-400">
+          <p className="text-sm text-gray-400">
             {PROGRESS_MESSAGES[progressIndex]}
           </p>
         )}
